@@ -1000,11 +1000,14 @@ App:
               { subs: nfU035EglSubtasks(parentCode) },
               With(
                   {
-                      pos: CountRows(
-                          Filter(
-                              subs,
-                              SortKey <= LookUp(subs, ItemCode = currentItemCode).SortKey
-                          )
+                      pos: Coalesce(
+                          First(
+                              Filter(
+                                  Sequence(CountRows(subs)),
+                                  Index(subs, Value).ItemCode = currentItemCode
+                              )
+                          ).Value,
+                          1
                       )
                   },
                   Index(subs, Max(1, Min(CountRows(subs), pos + step))).ItemCode

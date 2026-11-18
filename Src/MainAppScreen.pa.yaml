@@ -1,0 +1,1870 @@
+Screens:
+  MainAppScreen:
+    Properties:
+      Fill: =thmU035.AppBg
+      LoadingSpinnerColor: =thmU035.Primary
+      OnVisible: |-
+        =Set(
+              visibleTrigger,
+              Now()
+          );
+          Set(
+              _spinner,
+              true
+          );
+          Set(
+              _spinnertext,
+              "Loading..."
+          );
+          UpdateContext(
+              {
+                  _pickerOpen: false,
+                  _drfRowModalOpen: false,
+                  _drfChildKey: "",
+                  _drfChildNew: false,
+                  _pickSearch: "",
+                  _pickGroup: "All",
+                  _addItemOpen: false,
+                  _rowModalOpen: false,
+                  _rowView: "Screening",
+                  _remarksTarget: "",
+                  _childDefKey: "",
+                  _childDefNew: false,
+                  _childDefTick: 0,
+                  _attachOpen: false,
+                  _drfModalOpen: false,
+                  _refPopupOpen: false,
+                  _refPopupView: "Notes",
+                  _refImageIndex: 1,
+                  _drfRowKey: ""
+              }
+          );
+          Collect(
+              colParentResults,
+              {
+                  InspectionResultId: Blank(),
+                  ImpactRequirementId: Blank(),
+                  UROImpactItemId: Blank(),
+                  OrderNumber: "",
+                  DRFInspection: "",
+                  Guidelines: "",
+                  DRFType: "",
+                  DOI: Blank(),
+                  AsFoundCAT: "",
+                  AdditionalDate: Blank(),
+                  AdditionalName: "",
+                  AdditionalSignature: false,
+                  Signature: "",
+                  VisualDefects: "",
+                  DRFRequired: "",
+                  FinalCAT: "",
+                  ReferenceNotes: "",
+                  Remarks: "",
+                  IsDirty: false
+              }
+          );
+          Clear(colParentResults);
+          Collect(
+              colChildResults,
+              {
+                  InspectionDRFResultId: Blank(),
+                  ParentId: Blank(),
+                  DefectLocation: "",
+                  DefectDescription: "",
+                  FaceDefectOnly: false,
+                  DepthB: 0,
+                  MinimumWallC: 0,
+                  WallCalculation: 0,
+                  AdjacentWallThickness: "",
+                  AmountBelowMin: 0,
+                  MeasurementMethod: "",
+                  Notes: ""
+              }
+          );
+          Clear(colChildResults);
+          ClearCollect(
+              colParentResults,
+              InitializeParentItems(nfRecordItem.'PK - URO Impact Item')
+          );
+          ClearCollect(
+              colChildResults,
+              InitializeChildItems(nfRecordItem.'PK - URO Impact Item')
+          );
+          NormalizeU035ChildRowIds();
+          ClearCollect(
+              colParentResultsBackup,
+              colParentResults
+          );
+          Set(
+              _spinner,
+              false
+          );
+          UpdateContext({_pickerOpen: CountRows(colParentResults) = 0});
+    Children:
+      - vctrRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =thmU035.AppBg
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =5
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - hctrTopAction:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =thmU035.Surface
+                  FillPortions: =0
+                  Height: =60
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =60
+                  PaddingBottom: =4
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =4
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - btnBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Back"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        Appearance: =ButtonAppearance.Subtle
+                        Color: =thmU035.TextMuted
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="ArrowLeft"
+                        Layout: =ButtonLayout.IconOnly
+                        OnSelect: |-
+                          =If(
+                              HasDirtyChanges,
+                              Set(varConfirmType, "leave");
+                              Set(varConfirmMessage, "You have unsaved changes. Leave this page?");
+                              Set(varShowConfirmPopup, true),
+                              Back()
+                          )
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: =""
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =40
+                  - lblHeader:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        AutoHeight: =true
+                        Color: =thmU035.Heading
+                        FillPortions: =1
+                        FontWeight: =FontWeight.Bold
+                        LayoutMinWidth: =1
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =18
+                        Text: =nfHeader
+                        Width: =140
+                  - lblNotificationAnchor:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Text: =""
+                        Width: =75
+                  - lblFeedbackAnchor:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: =""
+                        Width: =60
+                  - btnThemeToggle:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Toggle light or dark appearance"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =thmU035.TextBody
+                        FontWeight: =""
+                        Height: =36
+                        OnSelect: |-
+                          =Set(
+                              varU035ThemeMode,
+                              If(varU035ThemeMode = "Dark", "Light", "Dark")
+                          )
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: |-
+                          =If(
+                              varU035ThemeMode = "Dark",
+                              "Appearance: Light",
+                              "Appearance: Dark"
+                          )
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =150
+                  - btnInfo:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Information"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =thmU035.Link
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="Info"
+                        OnSelect: |-
+                          =nfSendToast(
+                              "Info",
+                              "Select EGL tasks to build the worklist, then open each row to answer screening and DRF questions.",
+                              4000,
+                              "Info"
+                          )
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: ="Info"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =65
+                  - btnNotes:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Open notes"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =thmU035.Link
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="Info"
+                        OnSelect: |-
+                          =UpdateContext({
+                              _refPopupOpen: true,
+                              _refPopupView: "EGL",
+                              _refImageIndex: 1
+                          })
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: ="GN/EGL/Images"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =150
+            - hctrU035NotificationStrip:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =If(IsBlank(varInlineNoticeTitle), Color.Transparent, Switch(varInlineNoticeSeverity, "Error", thmU035.Danger, "Warning", thmU035.WarnBg, "Success", thmU035.SuccessBg, thmU035.SurfaceAlt))
+                  FillPortions: =0
+                  Height: =32
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =6
+                  LayoutMaxHeight: =32
+                  LayoutMinHeight: =32
+                  LayoutMinWidth: =0
+                  PaddingLeft: =10
+                  PaddingRight: =4
+                Children:
+                  - lblU035InlineNotice:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Align: =Align.Right
+                        AlignInContainer: =AlignInContainer.Center
+                        Color: =Switch(varLastSeverity, "Error", thmU035.TextInverse, "Warning", thmU035.WarnText, "Success", thmU035.SuccessText, thmU035.TextBody)
+                        FillPortions: =1
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        LayoutMinWidth: =0
+                        Size: =12
+                        Text: |-
+                          =If(
+                              IsBlank(varInlineNoticeTitle),
+                              "",
+                              varInlineNoticeTitle &
+                              If(
+                                  !IsBlank(varInlineNoticeBody),
+                                  "    " & varInlineNoticeBody,
+                                  ""
+                              )
+                          )
+                  - btnU035InlineNoticeClose:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Dismiss notification title"
+                        AlignInContainer: =AlignInContainer.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =thmU035.TextBody
+                        Height: =28
+                        Icon: ="Dismiss"
+                        OnSelect: =Set(varInlineNoticeTitle, "")
+                        Text: =""
+                        Visible: =!IsBlank(varInlineNoticeTitle)
+                        Width: =28
+                  - tmrU035InlineNotice:
+                      Control: Timer@2.1.0
+                      Properties:
+                        AutoStart: =true
+                        Duration: =250
+                        Height: =1
+                        OnTimerEnd: |-
+                          =If(
+                              !IsBlank(varInlineNoticeTitle) && Now() >= varInlineNoticeUntil,
+                              Set(varInlineNoticeTitle, "")
+                          )
+                        Repeat: =true
+                        Visible: =false
+                        Width: =1
+            - hctrContextBar:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =thmU035.SurfaceAlt
+                  FillPortions: =0
+                  Height: =55
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =52
+                  PaddingBottom: =5
+                  PaddingLeft: =5
+                  PaddingRight: =5
+                  PaddingTop: =5
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                Children:
+                  - lblModBadge:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        Color: =thmU035.ChipText
+                        Fill: =thmU035.ChipFill
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        LayoutMinWidth: =96
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        RadiusBottomLeft: =5
+                        RadiusBottomRight: =5
+                        RadiusTopLeft: =5
+                        RadiusTopRight: =5
+                        Size: =14
+                        Text: ="MOD " & Text(nfModNumber)
+                        Width: =90
+                  - lblActivityLabel:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        AutoHeight: =true
+                        Color: =thmU035.TextMuted
+                        FillPortions: =1
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        LayoutMinWidth: =120
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Text: ="Worklist Rows " & Text(CountRows(colParentResults))
+                        Width: =160
+                  - btnSelectItems:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Open the item worklist picker"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        BasePaletteColor: =thmU035.Primary
+                        DisplayMode: |-
+                          =If(
+                              nfInWorkingStatus && !nfU035AllRowsSigned(),
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="Add"
+                        OnSelect: |-
+                          =UpdateContext({
+                              _pickerOpen: true,
+                              _pickSearch: "",
+                              _pickGroup: "All",
+                              _addItemOpen: false
+                          });
+                          Set(varU035Search, "")
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: ="Select EGL Tasks"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =155
+                  - btnSave:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Save"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Center
+                        BasePaletteColor: =thmU035.Primary
+                        DisplayMode: |-
+                          =If(
+                              nfInWorkingStatus && !nfU035AllRowsSigned(),
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="Save"
+                        OnSelect: |-
+                          = If(
+                              HasDirtyChanges,
+                              If(
+                                  SaveAndRepopulateU035(),
+                                  nfSendToast(
+                                      "Draft saved",
+                                      "Inspection data saved successfully.",
+                                      3000,
+                                      "Success"
+                                  ),
+                                  nfSendToast(
+                                      "Save failed",
+                                      "Save did not complete successfully.",
+                                      5000,
+                                      "Error"
+                                  )
+                              ),
+                              nfSendToast(
+                                  "No change",
+                                  "Nothing to save.",
+                                  3000,
+                                  "Warning"
+                              )
+                          )
+                        PaddingBottom: =5
+                        PaddingLeft: =5
+                        PaddingRight: =5
+                        PaddingTop: =5
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: ="Save"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =80
+            - vctrWorklistBody:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =thmU035.Surface
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - hctrListHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Start
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =34
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =34
+                        LayoutWrap: =true
+                      Children:
+                        - lblListTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Color: =thmU035.Heading
+                              FillPortions: =1
+                              FontWeight: =FontWeight.Bold
+                              Size: =16
+                              Text: ="Inspection Worklist"
+                  - vctrEmptyState:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =thmU035.SurfaceAlt
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =6
+                        PaddingBottom: =16
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =16
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Visible: =CountRows(colParentResults) = 0
+                        X: =40
+                        Y: =40
+                      Children:
+                        - lblEmptyTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.Heading
+                              FontWeight: =FontWeight.Bold
+                              Height: =40
+                              Size: =18
+                              Text: ="No inspection worklist rows"
+                              Width: =300
+                        - lblEmptyBody:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.TextMuted
+                              Size: =13
+                              Text: ="Select one or more EGL tasks to generate the inspection worklist."
+                              Width: =420
+                        - btnEmptySelect:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Open the item worklist picker"
+                              Align: =Align.Center
+                              BasePaletteColor: =thmU035.Primary
+                              DisplayMode: |-
+                                =If(
+                                    nfInWorkingStatus && !nfU035AllRowsSigned(),
+                                    DisplayMode.Edit,
+                                    DisplayMode.Disabled
+                                )
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Add"
+                              OnSelect: |-
+                                =UpdateContext({
+                                    _pickerOpen: true,
+                                    _pickSearch: "",
+                                    _pickGroup: "All",
+                                    _addItemOpen: false
+                                });
+                                Set(varU035Search, "")
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Text: ="Select EGL Tasks"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =175
+                  - galResults:
+                      Control: Gallery@2.15.0
+                      Variant: VariableHeight
+                      Properties:
+                        AccessibleLabel: ="Selected inspection worklist"
+                        BorderColor: =thmU035.Border
+                        Items: =SortByColumns(colParentResults, "OrderNumber", SortOrder.Ascending)
+                        LayoutMinHeight: =1
+                        LayoutMinWidth: =1
+                        TabIndex: =0
+                        TemplateSize: =86
+                        Transition: =Transition.Pop
+                        Visible: =CountRows(colParentResults) > 0
+                        Width: =Parent.Width
+                      Children:
+                        - ctrListRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.Semilight
+                              Fill: =thmU035.SurfaceAlt
+                              Height: =76
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              PaddingBottom: =6
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =6
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Width: =Parent.TemplateWidth - 10
+                            Children:
+                              - vctrRowText:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =2
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =1
+                                  Children:
+                                    - lblRowTitle:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =thmU035.Heading
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Bold
+                                          LayoutMinHeight: =1
+                                          LayoutMinWidth: =1
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =16
+                                          Text: |-
+                                            =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber, "Screening row")
+                                              & If(
+                                                  !IsBlank(ThisItem.DRFType),
+                                                  "  Â·  Type " & ThisItem.DRFType,
+                                                  ""
+                                              )
+                                              & If(
+                                                  !IsBlank(ThisItem.DOI),
+                                                  "  Â·  DOI " & Text(ThisItem.DOI, "yyyy-mm-dd"),
+                                                  ""
+                                              )
+                                              & If(
+                                                  CountRows(
+                                                      Filter(
+                                                          colChildResults,
+                                                          ParentId = ThisItem.InspectionResultId
+                                                      )
+                                                  ) > 0,
+                                                  "  Â·  DRF rows entered",
+                                                  ""
+                                              )
+                                    - lblRowMeta:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =thmU035.TextMuted
+                                          FillPortions: =1
+                                          LayoutMinHeight: =1
+                                          LayoutMinWidth: =1
+                                          Text: |-
+                                            =Coalesce(ThisItem.OrderNumber, "-")
+                                            & If(
+                                                !IsBlank(ThisItem.DOI),
+                                                "  Â·  DOI " & Text(ThisItem.DOI, "yyyy-mm-dd"),
+                                                ""
+                                            )
+                                            & If(
+                                                CountRows(
+                                                    Filter(
+                                                        colChildResults,
+                                                        ParentId = ThisItem.InspectionResultId
+                                                    )
+                                                ) > 0,
+                                                "  Â·  DRF rows entered",
+                                                ""
+                                            )
+                              - lblRowStatusPill:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =If(nfU035RowComplete(ThisItem.InspectionResultId), thmU035.SuccessText, If(nfU035RowStarted(ThisItem.InspectionResultId), thmU035.WarnText, thmU035.TextMuted))
+                                    Fill: |-
+                                      =If(
+                                          !IsBlank(
+                                              Trim(
+                                                  Coalesce(
+                                                      ThisItem.Signature,
+                                                      ""
+                                                  )
+                                              )
+                                          ),
+                                          thmU035.SuccessBg,
+                                          If(
+                                              nfU035RowComplete(ThisItem.InspectionResultId),
+                                              thmU035.InfoBg,
+                                              If(
+                                                  nfU035RowStarted(ThisItem.InspectionResultId),
+                                                  thmU035.WarnBg,
+                                                  thmU035.SurfaceSubtle
+                                              )
+                                          )
+                                      )
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =30
+                                    PaddingBottom: =0
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =0
+                                    RadiusBottomLeft: =15
+                                    RadiusBottomRight: =15
+                                    RadiusTopLeft: =15
+                                    RadiusTopRight: =15
+                                    Text: =nfU035RowStatusText(ThisItem.InspectionResultId)
+                                    Width: =200
+                              - lblRowCats:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =thmU035.TextBody
+                                    Text: =Coalesce(ThisItem.AsFoundCAT, "-") & " to " & Coalesce(ThisItem.FinalCAT, "-")
+                                    Width: =90
+                        - btnRowOpen:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Open row details"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Transparent
+                              Color: =Color.Transparent
+                              FontWeight: =""
+                              Height: =74
+                              OnSelect: |-
+                                =Set(varCurrentTarget, ThisItem);
+                                UpdateContext({
+                                    _rowKey: ThisItem.InspectionResultId,
+                                    _rowModalOpen: true,
+                                    _rowView: "Screening"
+                                });
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Text: =""
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.TemplateWidth - 10
+      - ctrWorklistPicker:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =thmU035.Overlay
+            Height: =Parent.Height
+            Visible: =_pickerOpen
+            Width: =Parent.Width
+          Children:
+            - vctrWorklistPickerCard:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =thmU035.Border
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.ExtraBold
+                  Fill: =thmU035.Surface
+                  Height: =620
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width - 500
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =40
+                Children:
+                  - hctrWorklistPickerHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =40
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutMinHeight: =40
+                      Children:
+                        - lblWorklistPickerTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =thmU035.Heading
+                              FillPortions: =1
+                              FontWeight: =FontWeight.Bold
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Select EGL Tasks"
+                        - btnWorklistPickerClose:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close the EGL picker"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =ButtonAppearance.Subtle
+                              Color: =thmU035.TextMuted
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Dismiss"
+                              Layout: =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                =UpdateContext({
+                                    _pickerOpen: false,
+                                    _pickSearch: "",
+                                    _pickGroup: "All",
+                                    _addItemOpen: false
+                                })
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Text: =""
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =40
+                  - lblWorklistPickerSubtitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Color: =thmU035.TextMuted
+                        Height: =20
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          =CountRows(colParentResults) & " selected / " &
+                          CountRows(
+                              Filter(
+                                  nfU035SelectableEglParents,
+                                  IsBlank(LookUp(colParentResults, OrderNumber = ParentCode))
+                              )
+                          ) & " left"
+                  - hctrWorklistPickerFilters:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =42
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =42
+                      Children:
+                        - txtWorklistPickSearch:
+                            Control: ModernTextInput@1.1.2
+                            Properties:
+                              AccessibleLabel: ="Search EGL tasks to add"
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =Appearance.Outline
+                              Default: =_pickSearch
+                              FontWeight: =""
+                              Height: =36
+                              MaxLength: =-1
+                              OnChange: |-
+                                =UpdateContext({_pickSearch: Self.Text})
+                              Placeholder: ="Search code or title..."
+                              Size: =0
+                              TriggerOutput: =TriggerOutput.Delayed
+                              Width: =260
+                        - btnWorklistPickAll:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show all EGL groups in the picker"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "All",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "All"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="All"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =48
+                        - btnWorklistPick1A:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show section 1A tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "1A",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "1A"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="1A"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =52
+                        - btnWorklistPick1B:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show section 1B tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "1B",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "1B"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="1B"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =52
+                        - btnWorklistPick1C:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show section 1C tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "1C",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "1C"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="1C"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =52
+                        - btnWorklistPick1D:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show section 1D tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "1D",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "1D"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="1D"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =52
+                        - btnWorklistPick1E:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Show section 1E tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: |-
+                                =If(_pickGroup = "1E",
+                                    ButtonAppearance.Primary,
+                                    ButtonAppearance.Secondary)
+                              FontWeight: =""
+                              Height: =30
+                              OnSelect: |-
+                                =UpdateContext({_pickGroup: "1E"})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="1E"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =52
+                        - lblWorklistPickSpacer:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =thmU035.TextMuted
+                              FillPortions: =1
+                              LayoutMinWidth: =96
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =11
+                              Text: =""
+                              Width: =96
+                        - btnWorklistPickerDoneTop:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close the EGL picker"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              BasePaletteColor: =thmU035.Primary
+                              FontWeight: =""
+                              Height: =34
+                              Icon: ="Checkmark"
+                              OnSelect: |-
+                                =UpdateContext({_pickerOpen: false})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Text: ="Done"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =100
+                  - hctrWorklistPickerBody:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =200
+                      Children:
+                        - galWorklistPickerOptions:
+                            Control: Gallery@2.15.0
+                            Variant: VariableHeight
+                            Properties:
+                              AccessibleLabel: ="Available EGL tasks"
+                              BorderColor: =thmU035.Border
+                              FillPortions: =2
+                              Items: |-
+                                =SortByColumns(
+                                    Filter(
+                                        nfU035SelectableEglParents,
+                                        _pickGroup = "All" || StartsWith(ParentCode, _pickGroup),
+                                        IsBlank(_pickSearch)
+                                            || _pickSearch in ParentCode
+                                            || _pickSearch in ParentTitle
+                                            || _pickSearch in SearchText,
+                                        IsBlank(LookUp(colParentResults, OrderNumber = ParentCode))
+                                    ),
+                                    "SortKey",
+                                    SortOrder.Ascending
+                                )
+                              LayoutMinHeight: =20
+                              LayoutMinWidth: =20
+                              TabIndex: =0
+                              TemplateSize: =74
+                              Transition: =Transition.Pop
+                              Width: =420
+                            Children:
+                              - ctrWorklistPickerOptionRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.Semilight
+                                    Fill: =thmU035.SurfaceAlt
+                                    Height: =64
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    PaddingBottom: =6
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    PaddingTop: =6
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =Parent.TemplateWidth - 10
+                                  Children:
+                                    - lblWorklistPickerOptionCode:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =thmU035.ChipText
+                                          Fill: =thmU035.ChipFill
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          PaddingBottom: =0
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =5
+                                          RadiusBottomRight: =5
+                                          RadiusTopLeft: =5
+                                          RadiusTopRight: =5
+                                          Size: =13
+                                          Text: =ThisItem.ParentCode
+                                          Width: =64
+                                    - vctrWorklistPickerOptionText:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =2
+                                          LayoutMinHeight: =1
+                                          LayoutMinWidth: =1
+                                        Children:
+                                          - lblWorklistPickerOptionTitle:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                AutoHeight: =true
+                                                Color: =thmU035.Heading
+                                                FillPortions: =1
+                                                FontWeight: =FontWeight.Bold
+                                                LayoutMinHeight: =1
+                                                LayoutMinWidth: =1
+                                                Size: =14
+                                                Text: =ThisItem.ParentTitle
+                                          - lblWorklistPickerOptionMeta:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                Color: =thmU035.TextMuted
+                                                FillPortions: =1
+                                                LayoutMinHeight: =1
+                                                LayoutMinWidth: =1
+                                                Size: =11
+                                                Text: =ThisItem.ParentCode
+                                    - btnWorklistPickerAdd:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =$"Add {ThisItem.ParentCode}"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          FontWeight: =""
+                                          Height: =34
+                                          Icon: ="Add"
+                                          OnSelect: =AddU035EglTaskToWorklist(ThisItem.ParentCode)
+                                          PaddingBottom: =5
+                                          PaddingLeft: =12
+                                          PaddingRight: =12
+                                          PaddingTop: =5
+                                          RadiusBottomLeft: =4
+                                          RadiusBottomRight: =4
+                                          RadiusTopLeft: =4
+                                          RadiusTopRight: =4
+                                          Text: ="Add"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =88
+                        - vctrWorklistPickerSelected:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =thmU035.Border
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =thmU035.SurfaceAlt
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =1
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Width: =375
+                            Children:
+                              - lblWorklistSelectedTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Color: =thmU035.Heading
+                                    FontWeight: =FontWeight.Bold
+                                    Size: =14
+                                    Text: ="Selected items"
+                              - lblWorklistSelectedHint:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AutoHeight: =true
+                                    Color: =thmU035.TextMuted
+                                    Size: =11
+                                    Text: ="Remove items here before closing if you selected the wrong task."
+                              - galWorklistSelected:
+                                  Control: Gallery@2.15.0
+                                  Variant: VariableHeight
+                                  Properties:
+                                    AccessibleLabel: ="Selected EGL tasks"
+                                    BorderColor: =thmU035.Border
+                                    Items: =SortByColumns(colParentResults, "OrderNumber", SortOrder.Ascending)
+                                    LayoutMinHeight: =20
+                                    LayoutMinWidth: =20
+                                    TabIndex: =0
+                                    TemplateSize: =64
+                                    Transition: =Transition.Pop
+                                    Width: =270
+                                  Children:
+                                    - ctrWorklistSelectedRow:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Fill: =thmU035.Surface
+                                          Height: =56
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =8
+                                          PaddingBottom: =6
+                                          PaddingLeft: =10
+                                          PaddingRight: =10
+                                          PaddingTop: =6
+                                          RadiusBottomLeft: =6
+                                          RadiusBottomRight: =6
+                                          RadiusTopLeft: =6
+                                          RadiusTopRight: =6
+                                          Width: =Parent.TemplateWidth - 8
+                                        Children:
+                                          - vctrWorklistSelectedText:
+                                              Control: GroupContainer@1.5.0
+                                              Variant: AutoLayout
+                                              Properties:
+                                                DropShadow: =DropShadow.None
+                                                LayoutDirection: =LayoutDirection.Vertical
+                                                LayoutGap: =2
+                                                LayoutMinHeight: =1
+                                                LayoutMinWidth: =1
+                                              Children:
+                                                - lblWorklistSelectedCode:
+                                                    Control: ModernText@1.0.0
+                                                    Properties:
+                                                      AlignInContainer: =AlignInContainer.Stretch
+                                                      AutoHeight: =true
+                                                      Color: =thmU035.Heading
+                                                      FillPortions: =1
+                                                      FontWeight: =FontWeight.Bold
+                                                      LayoutMinHeight: =1
+                                                      LayoutMinWidth: =1
+                                                      Size: =13
+                                                      Text: =ThisItem.OrderNumber
+                                                - lblWorklistSelectedTitle2:
+                                                    Control: ModernText@1.0.0
+                                                    Properties:
+                                                      AlignInContainer: =AlignInContainer.Stretch
+                                                      AutoHeight: =true
+                                                      Color: =thmU035.TextMuted
+                                                      FillPortions: =1
+                                                      Height: =1
+                                                      LayoutMinHeight: =1
+                                                      LayoutMinWidth: =1
+                                                      Size: =11
+                                                      Text: =ThisItem.DRFInspection
+                                          - btnWorklistSelectedRemove:
+                                              Control: ModernButton@1.0.0
+                                              Properties:
+                                                AccessibleLabel: =$"Remove {ThisItem.OrderNumber}"
+                                                Align: =Align.Center
+                                                AlignInContainer: =AlignInContainer.Center
+                                                Appearance: =ButtonAppearance.Subtle
+                                                Color: =thmU035.Danger
+                                                FontWeight: =""
+                                                Icon: ="Delete"
+                                                Layout: =ButtonLayout.IconOnly
+                                                OnSelect: |-
+                                                  =RemoveIf(
+                                                      colChildResults,
+                                                      ParentId = ThisItem.InspectionResultId
+                                                  );
+                                                  RemoveIf(
+                                                      colParentResults,
+                                                      InspectionResultId = ThisItem.InspectionResultId
+                                                  )
+                                                PaddingBottom: =5
+                                                PaddingLeft: =12
+                                                PaddingRight: =12
+                                                PaddingTop: =5
+                                                RadiusBottomLeft: =4
+                                                RadiusBottomRight: =4
+                                                RadiusTopLeft: =4
+                                                RadiusTopRight: =4
+                                                Text: ="Remove"
+                                                VerticalAlign: =VerticalAlign.Middle
+                                                Width: =32
+                  - hctrWorklistPickerFooter:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =42
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutMinHeight: =42
+                      Children:
+                        - lblWorklistPickerFooterText:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Color: =thmU035.TextMuted
+                              FillPortions: =1
+                              Size: =11
+                              Text: ="Only unselected EGL tasks are shown on the left."
+                        - btnWorklistPickerCancel:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Cancel and close the EGL picker"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =ButtonAppearance.Secondary
+                              FontWeight: =""
+                              Height: =34
+                              OnSelect: |-
+                                =UpdateContext({
+                                    _pickerOpen: false,
+                                    _pickSearch: "",
+                                    _pickGroup: "All",
+                                    _addItemOpen: false
+                                })
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Text: ="Cancel"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =100
+                        - btnWorklistPickerDone:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Done selecting EGL tasks"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              BasePaletteColor: =thmU035.Primary
+                              FontWeight: =""
+                              Height: =34
+                              Icon: ="Checkmark"
+                              OnSelect: |-
+                                =UpdateContext({_pickerOpen: false})
+                              PaddingBottom: =5
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =5
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Text: ="Done"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =100
+      - ctrCurrentTargetModal:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =thmU035.Overlay
+            Height: =Parent.Height
+            Visible: =_rowModalOpen
+            Width: =Parent.Width
+          Children:
+            - vctrCurrentTargetCard:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =thmU035.Border
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.ExtraBold
+                  Fill: =thmU035.Surface
+                  Height: =Min(Parent.Height - 80, 820)
+                  Width: =Min(Parent.Width - 80, 1320)
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =(Parent.Height - Self.Height) / 2
+                Children:
+                  - hctrCurrentTargetHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =56
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =12
+                      Children:
+                        - lblCurrentTargetCode:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.ChipText
+                              Fill: =thmU035.ChipFill
+                              FontWeight: =FontWeight.Bold
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =0
+                              RadiusBottomLeft: =15
+                              RadiusBottomRight: =15
+                              RadiusTopLeft: =15
+                              RadiusTopRight: =15
+                              Size: =12
+                              Text: =varCurrentTarget.OrderNumber
+                              Width: =140
+                        - vctrCurrentTargetTitle:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutMinHeight: =1
+                              LayoutMinWidth: =1
+                            Children:
+                              - lblCurrentTargetTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    Color: =thmU035.Text
+                                    FillPortions: =2
+                                    FontWeight: =FontWeight.Bold
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =1
+                                    Size: =18
+                                    Text: =varCurrentTarget.DRFInspection
+                              - lblCurrentTargetSubtitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =thmU035.TextMuted
+                                    FillPortions: =1
+                                    Height: =1
+                                    LayoutMinWidth: =1
+                                    Size: =11
+                                    Text: =$"Selected EGL task with {CountRows(nfU035EglSubtasks(varCurrentTarget.OrderNumber))} subtasks"
+                        - btnCurrentTargetDelete:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Delete this selected task"
+                              Appearance: =ButtonAppearance.Subtle
+                              Color: =thmU035.Danger
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Delete"
+                              Layout: =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                =RemoveIf(
+                                    colChildResults,
+                                    ParentId = varCurrentTarget.InspectionResultId
+                                );
+                                RemoveIf(
+                                    colParentResults,
+                                    InspectionResultId = varCurrentTarget.InspectionResultId
+                                );
+                                UpdateContext({
+                                    _ctrCurrentTarget: false
+                                });
+                                Set(varCurrentTarget, Blank())
+                              Text: =""
+                              Width: =36
+                        - btnCurrentTargetClose:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close"
+                              Appearance: =ButtonAppearance.Subtle
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Dismiss"
+                              Layout: =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                =UpdateContext({
+                                    _ctrCurrentTarget: false
+                                });
+                                Set(varCurrentTarget, Blank())
+                              Text: =""
+                              Width: =36
+                  - hctrCurrentTargetFields:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =124
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutWrap: =true
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =76
+                      Children:
+                        - vctrDoiField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Height: =52
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinWidth: =220
+                            Children:
+                              - lblDoi:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Size: =11
+                                    Text: ="Date of Inspection"
+                              - txtCurrentTargetDoi:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    Default: =If(IsBlank(varCurrentTarget.DOI), "", Text(varCurrentTarget.DOI, "[$-en-US]mm/dd/yyyy"))
+                                    Height: =36
+                                    OnChange: |-
+                                      =Patch(
+                                          colParentResults,
+                                          LookUp(
+                                              colParentResults,
+                                              InspectionResultId = varCurrentTarget.InspectionResultId
+                                          ),
+                                          {
+                                              DOI: DateValue(Self.Text),
+                                              IsDirty: true
+                                          }
+                                      )
+                        - vctrAsFoundField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Height: =52
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinWidth: =180
+                            Children:
+                              - lblAsFound:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Size: =11
+                                    Text: ="As Found CAT"
+                              - txtCurrentTargetAsFound:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    Default: =varCurrentTarget.AsFoundCAT
+                                    Height: =36
+                                    OnChange: |-
+                                      =Patch(
+                                          colParentResults,
+                                          LookUp(
+                                              colParentResults,
+                                              InspectionResultId = varCurrentTarget.InspectionResultId
+                                          ),
+                                          {
+                                              AsFoundCAT: Self.Text,
+                                              IsDirty: true
+                                          }
+                                      )
+                        - vctrVisualDefectsField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Height: =52
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinWidth: =180
+                            Children:
+                              - lblVisualDefects:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Size: =11
+                                    Text: ="Visual Defects"
+                              - txtCurrentTargetVisualDefects:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    Default: =varCurrentTarget.VisualDefects
+                                    Height: =36
+                                    OnChange: |-
+                                      =Patch(
+                                          colParentResults,
+                                          LookUp(
+                                              colParentResults,
+                                              InspectionResultId = varCurrentTarget.InspectionResultId
+                                          ),
+                                          {
+                                              VisualDefects: Self.Text,
+                                              IsDirty: true
+                                          }
+                                      )
+                        - vctrFinalCatField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Height: =52
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinWidth: =180
+                            Children:
+                              - lblFinalCat:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Size: =11
+                                    Text: ="Final CAT"
+                              - txtCurrentTargetFinalCat:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    Default: =varCurrentTarget.FinalCAT
+                                    Height: =36
+                                    OnChange: |-
+                                      =Patch(
+                                          colParentResults,
+                                          LookUp(
+                                              colParentResults,
+                                              InspectionResultId = varCurrentTarget.InspectionResultId
+                                          ),
+                                          {
+                                              FinalCAT: Self.Text,
+                                              IsDirty: true
+                                          }
+                                      )
+                  - vctrCurrentTargetReference:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =56
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =208
+                      Children:
+                        - lblReferenceNotes:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Size: =11
+                              Text: ="Reference Notes"
+                        - txtReferenceNotesView:
+                            Control: ModernTextInput@1.1.2
+                            Properties:
+                              Default: =varCurrentTarget.ReferenceNotes
+                              DisplayMode: =DisplayMode.View
+                              Height: =36
+                              Width: =Parent.Width
+                  - vctrCurrentTargetRemarks:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =72
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =272
+                      Children:
+                        - lblRemarks:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Size: =11
+                              Text: ="Remarks"
+                        - txtCurrentTargetRemarks:
+                            Control: ModernTextInput@1.1.2
+                            Properties:
+                              Default: =varCurrentTarget.Remarks
+                              Height: =44
+                              OnChange: |-
+                                =Patch(
+                                    colParentResults,
+                                    LookUp(
+                                        colParentResults,
+                                        InspectionResultId = varCurrentTarget.InspectionResultId
+                                    ),
+                                    {
+                                        Remarks: Self.Text,
+                                        IsDirty: true
+                                    }
+                                )
+                              Width: =Parent.Width
+                  - hctrCurrentTargetSubtaskHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =34
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =352
+                      Children:
+                        - lblSubtaskHdrCode:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              FillPortions: =1.2
+                              FontWeight: =FontWeight.Bold
+                              Size: =11
+                              Text: ="Subtask"
+                        - lblSubtaskHdrTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              FillPortions: =4
+                              FontWeight: =FontWeight.Bold
+                              Size: =11
+                              Text: ="Description"
+                        - lblSubtaskHdrStatus:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              FillPortions: =2
+                              FontWeight: =FontWeight.Bold
+                              Size: =11
+                              Text: ="Status"
+                        - lblSubtaskHdrNotes:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              FillPortions: =3
+                              FontWeight: =FontWeight.Bold
+                              Size: =11
+                              Text: ="Notes"
+                  - galCurrentTargetSubtasks:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="EGL subtasks for selected task"
+                        Height: =Parent.Height - 398
+                        Items: =nfU035EglSubtasks(varCurrentTarget.OrderNumber)
+                        TemplateSize: =84
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =386
+                      Children:
+                        - hctrCurrentTargetSubtaskRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.Semilight
+                              Fill: =thmU035.SurfaceAlt
+                              Height: =76
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =8
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              Width: =Parent.TemplateWidth - 8
+                              X: =4
+                              Y: =4
+                            Children:
+                              - lblSubtaskCode:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Color: =thmU035.Primary
+                                    FillPortions: =1.2
+                                    FontWeight: =FontWeight.Bold
+                                    Size: =12
+                                    Text: =ThisItem.ItemCode
+                              - lblSubtaskTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Color: =thmU035.Text
+                                    FillPortions: =4
+                                    Size: =12
+                                    Text: =ThisItem.ItemText
+                              - txtSubtaskStatus:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    FillPortions: =2
+                                    Height: =36
+                              - txtSubtaskNotes:
+                                  Control: ModernTextInput@1.1.2
+                                  Properties:
+                                    FillPortions: =3
+                                    Height: =36

@@ -806,6 +806,260 @@ App:
           );
           true
       };
+
+
+      // ============================================================================
+      // 15. SUBTASK ANSWER STORE (one row per parent code + subtask ItemCode)
+      // Parent = EGL task (code/title/signature only). Every screening answer lives
+      // on the subtask. DRF rows hang off the same ParentCode + ItemCode pair, so the
+      // three collections can always be joined back into one JSON object.
+      // ============================================================================
+
+      U035SubtaskResultRecordType := Type({
+          ParentCode: Text,
+          ItemCode: Text,
+          ItemText: Text,
+          DOI: Date,
+          AsFoundCAT: Text,
+          VisualDefects: Text,
+          DRFRequired: Text,
+          FinalCAT: Text,
+          Remarks: Text
+      });
+
+      U035SubtaskDrfRecordType := Type({
+          DrfId: Text,
+          ParentCode: Text,
+          ItemCode: Text,
+          DefectLocation: Text,
+          DefectDescription: Text,
+          FaceDefectOnly: Boolean,
+          DepthB: Number,
+          MinimumWallC: Number,
+          WallCalculation: Number,
+          AdjacentWallThickness: Text,
+          AmountBelowMin: Number,
+          MeasurementMethod: Text,
+          Notes: Text
+      });
+
+      nfU035Parent(parentCode: Text): U035InspectionResultRecordType =
+      LookUp(colParentResults, OrderNumber = parentCode);
+
+      nfU035Sub(parentCode: Text, itemCode: Text): U035SubtaskResultRecordType =
+      LookUp(colSubtaskResults, ParentCode = parentCode && ItemCode = itemCode);
+
+      nfU035Drf(drfId: Text): U035SubtaskDrfRecordType =
+      LookUp(colSubtaskDrf, DrfId = drfId);
+
+      // Creates the blank answer row for a subtask the first time it is opened.
+      EnsureU035Sub(parentCode: Text, itemCode: Text): Boolean =
+      {
+          If(
+              !IsBlank(itemCode) && IsBlank(nfU035Sub(parentCode, itemCode).ItemCode),
+              Collect(
+                  colSubtaskResults,
+                  {
+                      ParentCode: parentCode,
+                      ItemCode: itemCode,
+                      ItemText: LookUp(nfU035EglSubtasks(parentCode), ItemCode = itemCode).ItemText,
+                      DOI: Blank(),
+                      AsFoundCAT: "",
+                      VisualDefects: "",
+                      DRFRequired: "",
+                      FinalCAT: "",
+                      Remarks: ""
+                  }
+              )
+          );
+          true
+      };
+
+      // Flags the parent row so the existing Save / leave-page prompts see the change.
+      MarkU035Dirty(parentCode: Text): Boolean =
+      {
+          Patch(
+              colParentResults,
+              LookUp(colParentResults, OrderNumber = parentCode),
+              { IsDirty: true }
+          );
+          true
+      };
+
+      nfU035ParentSigned(parentCode: Text): Boolean =
+      !IsBlank(Trim(Coalesce(nfU035Parent(parentCode).Signature, "")));
+
+      nfU035CanEditCode(parentCode: Text): Boolean =
+      nfInWorkingStatus && !nfU035ParentSigned(parentCode);
+
+      nfU035CanRemoveSigByCode(parentCode: Text): Boolean =
+      nfInWorkingStatus && nfU035ParentSigned(parentCode);
+
+
+      // ----------------------------------------------------------------------------
+      // DRF row completeness (same required fields as the original child-row check)
+      // ----------------------------------------------------------------------------
+
+      nfU035DrfRowMissing(drfId: Text): Number =
+      With(
+          { r: nfU035Drf(drfId) },
+          CountIf(
+              Table(
+                  { Needed: IsBlank(r.DefectLocation) },
+                  { Needed: IsBlank(r.DefectDescription) },
+                  { Needed: IsBlank(r.MeasurementMethod) },
+                  { Needed: r.DepthB = 0 },
+                  { Needed: r.MinimumWallC = 0 }
+              ),
+              Needed
+          )
+      );
+
+
+      // ----------------------------------------------------------------------------
+      // SUBTASK STATUS
+      // Complete = all five screening answers present, and when DRF Required = Yes
+      // at least one DRF row exists and every DRF row is complete.
+      // ----------------------------------------------------------------------------
+
+      nfU035SubComplete(parentCode: Text, itemCode: Text): Boolean =
+      With(
+          {
+              r: nfU035Sub(parentCode, itemCode),
+              drfRows: CountRows(Filter(colSubtaskDrf, ParentCode = parentCode && ItemCode = itemCode)),
+              drfBad: CountRows(
+                  Filter(
+                      colSubtaskDrf,
+                      ParentCode = parentCode && ItemCode = itemCode && nfU035DrfRowMissing(DrfId) > 0
+                  )
+              )
+          },
+          !IsBlank(r.DOI) &&
+          !IsBlank(r.AsFoundCAT) &&
+          !IsBlank(r.VisualDefects) &&
+          !IsBlank(r.FinalCAT) &&
+          (
+              r.DRFRequired = "No" ||
+              (r.DRFRequired = "Yes" && drfRows > 0 && drfBad = 0)
+          )
+      );
+
+      nfU035SubStarted(parentCode: Text, itemCode: Text): Boolean =
+      With(
+          { r: nfU035Sub(parentCode, itemCode) },
+          !IsBlank(r.DOI) ||
+          !IsBlank(r.AsFoundCAT) ||
+          !IsBlank(r.VisualDefects) ||
+          !IsBlank(r.DRFRequired) ||
+          !IsBlank(r.FinalCAT) ||
+          !IsBlank(r.Remarks)
+      );
+
+      nfU035SubStatusText(parentCode: Text, itemCode: Text): Text =
+      If(
+          nfU035SubComplete(parentCode, itemCode),
+          "Done",
+          If(nfU035SubStarted(parentCode, itemCode), "In Progress", "Not Started")
+      );
+
+      nfU035SubDoneCount(parentCode: Text): Number =
+      CountRows(
+          Filter(
+              nfU035EglSubtasks(parentCode),
+              nfU035SubComplete(parentCode, ItemCode)
+          )
+      );
+
+      nfU035ParentComplete(parentCode: Text): Boolean =
+      CountRows(nfU035EglSubtasks(parentCode)) > 0 &&
+      nfU035SubDoneCount(parentCode) = CountRows(nfU035EglSubtasks(parentCode));
+
+      nfU035ParentStarted(parentCode: Text): Boolean =
+      CountRows(
+          Filter(
+              nfU035EglSubtasks(parentCode),
+              nfU035SubStarted(parentCode, ItemCode)
+          )
+      ) > 0;
+
+      nfU035ParentStatus(parentCode: Text): Text =
+      If(
+          nfU035ParentSigned(parentCode),
+          "Signed",
+          If(
+              nfU035ParentComplete(parentCode),
+              "Complete",
+              If(nfU035ParentStarted(parentCode), "In Progress", "Not Started")
+          )
+      );
+
+      // Previous / Next navigation inside the modal (step = -1 or 1).
+      nfU035AdjacentSubtask(parentCode: Text, currentItemCode: Text, step: Number): Text =
+      IfError(
+          With(
+              { subs: nfU035EglSubtasks(parentCode) },
+              With(
+                  {
+                      pos: CountRows(
+                          Filter(
+                              subs,
+                              SortKey <= LookUp(subs, ItemCode = currentItemCode).SortKey
+                          )
+                      )
+                  },
+                  Index(subs, Max(1, Min(CountRows(subs), pos + step))).ItemCode
+              )
+          ),
+          currentItemCode
+      );
+
+
+      // ============================================================================
+      // 16. JSON OBJECT FOR THE ENTIRE RESULT SET
+      // Parent task -> Subtasks (screening answers) -> DrfRows (only when
+      // DRFRequired = "Yes"). Call it when you need the string, e.g.
+      //     Set(varResultsJson, nfU035BuildResultsJson())
+      // ============================================================================
+
+      nfU035BuildResultsJson(): Text =
+      JSON(
+          {
+              Version: 1,
+              ReportId: nfReportGUID,
+              ModNumber: nfModNumber,
+              GeneratedOn: Now(),
+              Tasks: ForAll(
+                  colParentResults As P,
+                  {
+                      ParentCode: P.OrderNumber,
+                      Title: P.DRFInspection,
+                      Signature: P.Signature,
+                      Complete: nfU035ParentComplete(P.OrderNumber),
+                      Subtasks: ForAll(
+                          Filter(colSubtaskResults, ParentCode = P.OrderNumber) As S,
+                          {
+                              ItemCode: S.ItemCode,
+                              ItemText: S.ItemText,
+                              DOI: S.DOI,
+                              AsFoundCAT: S.AsFoundCAT,
+                              VisualDefects: S.VisualDefects,
+                              DRFRequired: S.DRFRequired,
+                              FinalCAT: S.FinalCAT,
+                              Remarks: S.Remarks,
+                              Complete: nfU035SubComplete(S.ParentCode, S.ItemCode),
+                              DrfRows: Filter(
+                                  colSubtaskDrf,
+                                  S.DRFRequired = "Yes" &&
+                                  ParentCode = S.ParentCode &&
+                                  ItemCode = S.ItemCode
+                              )
+                          }
+                      )
+                  }
+              )
+          },
+          JSONFormat.IndentFour
+      );
     OnStart: |-
       // =================================================================================
       // U035 INSPECTION - APP.ONSTART
@@ -978,6 +1232,47 @@ App:
           }
       );
       Clear(colStaging);
+
+
+      // -----------------------------------------------------------------------------
+      // 5B. SUBTASK ANSWER + SUBTASK DRF COLLECTION TYPE SEEDS
+      // -----------------------------------------------------------------------------
+
+      ClearCollect(
+          colSubtaskResults,
+          {
+              ParentCode: "",
+              ItemCode: "",
+              ItemText: "",
+              DOI: Blank(),
+              AsFoundCAT: "",
+              VisualDefects: "",
+              DRFRequired: "",
+              FinalCAT: "",
+              Remarks: ""
+          }
+      );
+      Clear(colSubtaskResults);
+
+      ClearCollect(
+          colSubtaskDrf,
+          {
+              DrfId: "",
+              ParentCode: "",
+              ItemCode: "",
+              DefectLocation: "",
+              DefectDescription: "",
+              FaceDefectOnly: false,
+              DepthB: 0,
+              MinimumWallC: 0,
+              WallCalculation: 0,
+              AdjacentWallThickness: "",
+              AmountBelowMin: 0,
+              MeasurementMethod: "",
+              Notes: ""
+          }
+      );
+      Clear(colSubtaskDrf);
 
 
       // -----------------------------------------------------------------------------

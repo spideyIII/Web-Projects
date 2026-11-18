@@ -36,7 +36,9 @@ Screens:
                   _refPopupOpen: false,
                   _refPopupView: "Notes",
                   _refImageIndex: 1,
-                  _drfRowKey: ""
+                  _drfRowKey: "",
+                  _rowKey: "",
+                  _subKey: ""
               }
           );
           Collect(
@@ -657,6 +659,7 @@ Screens:
                                   Properties:
                                     BorderStyle: =BorderStyle.None
                                     DropShadow: =DropShadow.None
+                                    FillPortions: =1
                                     LayoutDirection: =LayoutDirection.Vertical
                                     LayoutGap: =2
                                     LayoutMinHeight: =1
@@ -676,28 +679,7 @@ Screens:
                                           PaddingRight: =0
                                           PaddingTop: =0
                                           Size: =16
-                                          Text: |-
-                                            =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber, "Screening row")
-                                              & If(
-                                                  !IsBlank(ThisItem.DRFType),
-                                                  "  Â·  Type " & ThisItem.DRFType,
-                                                  ""
-                                              )
-                                              & If(
-                                                  !IsBlank(ThisItem.DOI),
-                                                  "  Â·  DOI " & Text(ThisItem.DOI, "yyyy-mm-dd"),
-                                                  ""
-                                              )
-                                              & If(
-                                                  CountRows(
-                                                      Filter(
-                                                          colChildResults,
-                                                          ParentId = ThisItem.InspectionResultId
-                                                      )
-                                                  ) > 0,
-                                                  "  Â·  DRF rows entered",
-                                                  ""
-                                              )
+                                          Text: =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber, "EGL task")
                                     - lblRowMeta:
                                         Control: ModernText@1.0.0
                                         Properties:
@@ -706,49 +688,13 @@ Screens:
                                           FillPortions: =1
                                           LayoutMinHeight: =1
                                           LayoutMinWidth: =1
-                                          Text: |-
-                                            =Coalesce(ThisItem.OrderNumber, "-")
-                                            & If(
-                                                !IsBlank(ThisItem.DOI),
-                                                "  Â·  DOI " & Text(ThisItem.DOI, "yyyy-mm-dd"),
-                                                ""
-                                            )
-                                            & If(
-                                                CountRows(
-                                                    Filter(
-                                                        colChildResults,
-                                                        ParentId = ThisItem.InspectionResultId
-                                                    )
-                                                ) > 0,
-                                                "  Â·  DRF rows entered",
-                                                ""
-                                            )
+                                          Text: =Coalesce(ThisItem.OrderNumber, "-") & "  ·  " & nfU035SubDoneCount(ThisItem.OrderNumber) & " of " & CountRows(nfU035EglSubtasks(ThisItem.OrderNumber)) & " subtasks complete"
                               - lblRowStatusPill:
                                   Control: ModernText@1.0.0
                                   Properties:
                                     Align: =Align.Center
-                                    Color: =If(nfU035RowComplete(ThisItem.InspectionResultId), thmU035.SuccessText, If(nfU035RowStarted(ThisItem.InspectionResultId), thmU035.WarnText, thmU035.TextMuted))
-                                    Fill: |-
-                                      =If(
-                                          !IsBlank(
-                                              Trim(
-                                                  Coalesce(
-                                                      ThisItem.Signature,
-                                                      ""
-                                                  )
-                                              )
-                                          ),
-                                          thmU035.SuccessBg,
-                                          If(
-                                              nfU035RowComplete(ThisItem.InspectionResultId),
-                                              thmU035.InfoBg,
-                                              If(
-                                                  nfU035RowStarted(ThisItem.InspectionResultId),
-                                                  thmU035.WarnBg,
-                                                  thmU035.SurfaceSubtle
-                                              )
-                                          )
-                                      )
+                                    Color: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessText, "Complete", thmU035.ChipText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
+                                    Fill: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessBg, "Complete", thmU035.InfoBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
                                     FontWeight: =FontWeight.Bold
                                     Height: =30
                                     PaddingBottom: =0
@@ -759,31 +705,19 @@ Screens:
                                     RadiusBottomRight: =15
                                     RadiusTopLeft: =15
                                     RadiusTopRight: =15
-                                    Text: =nfU035RowStatusText(ThisItem.InspectionResultId)
-                                    Width: =200
-                              - lblRowCats:
-                                  Control: ModernText@1.0.0
-                                  Properties:
-                                    Align: =Align.Center
-                                    Color: =thmU035.TextBody
-                                    Text: =Coalesce(ThisItem.AsFoundCAT, "-") & " to " & Coalesce(ThisItem.FinalCAT, "-")
-                                    Width: =90
+                                    Text: =nfU035ParentStatus(ThisItem.OrderNumber)
+                                    Width: =140
                         - btnRowOpen:
                             Control: ModernButton@1.0.0
                             Properties:
-                              AccessibleLabel: ="Open row details"
+                              AccessibleLabel: ="Open task subtasks"
                               Align: =Align.Center
                               Appearance: =ButtonAppearance.Transparent
                               Color: =Color.Transparent
                               FontWeight: =""
                               Height: =74
                               OnSelect: |-
-                                =Set(varCurrentTarget, ThisItem);
-                                UpdateContext({
-                                    _rowKey: ThisItem.InspectionResultId,
-                                    _rowModalOpen: true,
-                                    _rowView: "Screening"
-                                });
+                                =With({first: First(nfU035EglSubtasks(ThisItem.OrderNumber)).ItemCode}, EnsureU035Sub(ThisItem.OrderNumber, first); UpdateContext({_rowKey: ThisItem.OrderNumber, _subKey: first, _rowModalOpen: true, _drfModalOpen: false, _drfChildKey: ""}))
                               PaddingBottom: =5
                               PaddingLeft: =5
                               PaddingRight: =5
@@ -1507,7 +1441,7 @@ Screens:
                               RadiusTopLeft: =15
                               RadiusTopRight: =15
                               Size: =12
-                              Text: =varCurrentTarget.OrderNumber
+                              Text: =_rowKey
                               Width: =140
                         - vctrCurrentTargetTitle:
                             Control: GroupContainer@1.5.0
@@ -1516,6 +1450,7 @@ Screens:
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutMinHeight: =1
                               LayoutMinWidth: =1
+                              FillPortions: =1
                             Children:
                               - lblCurrentTargetTitle:
                                   Control: ModernText@1.0.0
@@ -1523,22 +1458,20 @@ Screens:
                                     AlignInContainer: =AlignInContainer.Stretch
                                     AutoHeight: =true
                                     Color: =thmU035.Text
-                                    FillPortions: =2
                                     FontWeight: =FontWeight.Bold
                                     LayoutMinHeight: =1
                                     LayoutMinWidth: =1
                                     Size: =18
-                                    Text: =varCurrentTarget.DRFInspection
+                                    Text: =nfU035Parent(_rowKey).DRFInspection
                               - lblCurrentTargetSubtitle:
                                   Control: ModernText@1.0.0
                                   Properties:
                                     AlignInContainer: =AlignInContainer.Stretch
                                     Color: =thmU035.TextMuted
-                                    FillPortions: =1
-                                    Height: =1
+                                    Height: =18
                                     LayoutMinWidth: =1
                                     Size: =11
-                                    Text: =$"Selected EGL task with {CountRows(nfU035EglSubtasks(varCurrentTarget.OrderNumber))} subtasks"
+                                    Text: =$"{nfU035SubDoneCount(_rowKey)} of {CountRows(nfU035EglSubtasks(_rowKey))} subtasks complete"
                         - btnCurrentTargetDelete:
                             Control: ModernButton@1.0.0
                             Properties:
@@ -1549,19 +1482,12 @@ Screens:
                               Height: =36
                               Icon: ="Delete"
                               Layout: =ButtonLayout.IconOnly
+                              DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.Disabled)
                               OnSelect: |-
-                                =RemoveIf(
-                                    colChildResults,
-                                    ParentId = varCurrentTarget.InspectionResultId
-                                );
-                                RemoveIf(
-                                    colParentResults,
-                                    InspectionResultId = varCurrentTarget.InspectionResultId
-                                );
-                                UpdateContext({
-                                    _ctrCurrentTarget: false
-                                });
-                                Set(varCurrentTarget, Blank())
+                                =RemoveIf(colSubtaskDrf, ParentCode = _rowKey);
+                                RemoveIf(colSubtaskResults, ParentCode = _rowKey);
+                                RemoveIf(colParentResults, OrderNumber = _rowKey);
+                                UpdateContext({_rowModalOpen: false, _drfModalOpen: false, _rowKey: "", _subKey: "", _drfChildKey: ""})
                               Text: =""
                               Width: =36
                         - btnCurrentTargetClose:
@@ -1574,297 +1500,1060 @@ Screens:
                               Icon: ="Dismiss"
                               Layout: =ButtonLayout.IconOnly
                               OnSelect: |-
-                                =UpdateContext({
-                                    _ctrCurrentTarget: false
-                                });
-                                Set(varCurrentTarget, Blank())
+                                =UpdateContext({_rowModalOpen: false, _drfModalOpen: false, _rowKey: "", _subKey: "", _drfChildKey: ""})
                               Text: =""
                               Width: =36
-                  - hctrCurrentTargetFields:
+                  - vctrSubtaskRail:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
-                        Height: =124
+                        BorderColor: =thmU035.Border
+                        BorderThickness: =1
+                        Fill: =thmU035.SurfaceAlt
+                        Height: =Parent.Height - 152
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =6
+                        PaddingBottom: =6
+                        PaddingLeft: =6
+                        PaddingRight: =6
+                        PaddingTop: =6
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Width: =340
+                        X: =12
+                        Y: =80
+                      Children:
+                        - lblRailTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Color: =thmU035.Heading
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              Size: =13
+                              Text: ="Subtasks"
+                        - galModalSubtasks:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="EGL subtasks for selected task"
+                              BorderColor: =thmU035.Border
+                              FillPortions: =1
+                              Items: =nfU035EglSubtasks(_rowKey)
+                              TemplateSize: =80
+                              TemplatePadding: =0
+                              Width: =Parent.Width - 12
+                            Children:
+                              - ctrModalSubRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.Semilight
+                                    Fill: =If(ThisItem.ItemCode = _subKey, thmU035.SelectedFill, thmU035.Surface)
+                                    Height: =72
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    PaddingBottom: =4
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =4
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                                  Children:
+                                    - vctrModalSubText:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: =BorderStyle.None
+                                          DropShadow: =DropShadow.None
+                                          FillPortions: =1
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =2
+                                          LayoutMinHeight: =1
+                                          LayoutMinWidth: =1
+                                        Children:
+                                          - lblModalSubCode:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                Color: =thmU035.Primary
+                                                FontWeight: =FontWeight.Bold
+                                                Height: =18
+                                                Size: =12
+                                                Text: =ThisItem.ItemCode
+                                          - lblModalSubText:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                Color: =thmU035.Text
+                                                FillPortions: =1
+                                                LayoutMinHeight: =1
+                                                LayoutMinWidth: =1
+                                                Size: =11
+                                                Text: =ThisItem.ItemText
+                                    - lblModalSubStatus:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =Switch(nfU035SubStatusText(_rowKey, ThisItem.ItemCode), "Done", thmU035.SuccessText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
+                                          Fill: =Switch(nfU035SubStatusText(_rowKey, ThisItem.ItemCode), "Done", thmU035.SuccessBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =24
+                                          PaddingBottom: =0
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =12
+                                          RadiusBottomRight: =12
+                                          RadiusTopLeft: =12
+                                          RadiusTopRight: =12
+                                          Size: =10
+                                          Text: =nfU035SubStatusText(_rowKey, ThisItem.ItemCode)
+                                          Width: =84
+                              - btnModalSubSelect:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =$"Open subtask {ThisItem.ItemCode}"
+                                    Appearance: =ButtonAppearance.Transparent
+                                    Color: =Color.Transparent
+                                    FontWeight: =""
+                                    Height: =72
+                                    OnSelect: |-
+                                      =EnsureU035Sub(_rowKey, ThisItem.ItemCode);
+                                      UpdateContext({_subKey: ThisItem.ItemCode})
+                                    Text: =""
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                  - vctrSubPanel:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - 152
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        PaddingLeft: =4
+                        PaddingRight: =4
+                        Width: =Parent.Width - 376
+                        X: =364
+                        Y: =80
+                      Children:
+                        - lblSubPlaceholder:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.TextMuted
+                              Height: =80
+                              Size: =14
+                              Text: ="Select a subtask on the left to answer its screening questions."
+                              Visible: =IsBlank(_subKey)
+                              Width: =Parent.Width
+                        - vctrSubForm:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =Color.Transparent
+                              FillPortions: =1
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =12
+                              LayoutMinHeight: =1
+                              Visible: =!IsBlank(_subKey)
+                            Children:
+                              - hctrSubFormHeader:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =44
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =44
+                                  Children:
+                                    - lblSubFormCode:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =thmU035.ChipText
+                                          Fill: =thmU035.ChipFill
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          PaddingBottom: =0
+                                          PaddingLeft: =10
+                                          PaddingRight: =10
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =15
+                                          RadiusBottomRight: =15
+                                          RadiusTopLeft: =15
+                                          RadiusTopRight: =15
+                                          Size: =12
+                                          Text: =_subKey
+                                          Width: =110
+                                    - lblSubFormText:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.Heading
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Bold
+                                          LayoutMinWidth: =1
+                                          Size: =14
+                                          Text: =LookUp(nfU035EglSubtasks(_rowKey), ItemCode = _subKey).ItemText
+                                    - lblSubFormStatus:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =Switch(nfU035SubStatusText(_rowKey, _subKey), "Done", thmU035.SuccessText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
+                                          Fill: =Switch(nfU035SubStatusText(_rowKey, _subKey), "Done", thmU035.SuccessBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =26
+                                          PaddingBottom: =0
+                                          PaddingLeft: =10
+                                          PaddingRight: =10
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =13
+                                          RadiusBottomRight: =13
+                                          RadiusTopLeft: =13
+                                          RadiusTopRight: =13
+                                          Size: =11
+                                          Text: =nfU035SubStatusText(_rowKey, _subKey)
+                                          Width: =100
+                              - hctrSubFields:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =132
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =12
+                                    LayoutMinHeight: =132
+                                    LayoutWrap: =true
+                                  Children:
+                                    - vctrDoiField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =200
+                                        Children:
+                                          - lblDoi:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="Date of Inspection"
+                                          - txtSubDoi:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =If(IsBlank(nfU035Sub(_rowKey, _subKey).DOI), "", Text(nfU035Sub(_rowKey, _subKey).DOI, "[$-en-US]mm/dd/yyyy"))
+                                                Height: =36
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                OnChange: |-
+                                                  =With({newDate: IfError(DateValue(Self.Text, "en-US"), Blank())}, If(Text(newDate, "yyyy-mm-dd") <> Text(nfU035Sub(_rowKey, _subKey).DOI, "yyyy-mm-dd"), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {DOI: newDate}); MarkU035Dirty(_rowKey)))
+                                                Placeholder: ="mm/dd/yyyy"
+                                    - vctrAsFoundField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =200
+                                        Children:
+                                          - lblAsFound:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="As Found CAT"
+                                          - txtSubAsFound:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =nfU035Sub(_rowKey, _subKey).AsFoundCAT
+                                                Height: =36
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                OnChange: |-
+                                                  =If(Self.Text <> Coalesce(nfU035Sub(_rowKey, _subKey).AsFoundCAT, ""), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {AsFoundCAT: Self.Text}); MarkU035Dirty(_rowKey))
+                                    - vctrVisualDefectsField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =200
+                                        Children:
+                                          - lblVisualDefects:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="Visual Defects"
+                                          - txtSubVisualDefects:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =nfU035Sub(_rowKey, _subKey).VisualDefects
+                                                Height: =36
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                OnChange: |-
+                                                  =If(Self.Text <> Coalesce(nfU035Sub(_rowKey, _subKey).VisualDefects, ""), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {VisualDefects: Self.Text}); MarkU035Dirty(_rowKey))
+                                    - vctrDrfRequiredField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =200
+                                        Children:
+                                          - lblDrfRequired:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="DRF Required"
+                                          - hctrSubDrfToggle:
+                                              Control: GroupContainer@1.5.0
+                                              Variant: AutoLayout
+                                              Properties:
+                                                DropShadow: =DropShadow.None
+                                                Height: =36
+                                                LayoutDirection: =LayoutDirection.Horizontal
+                                                LayoutGap: =8
+                                              Children:
+                                                - btnSubDrfYes:
+                                                    Control: ModernButton@1.0.0
+                                                    Properties:
+                                                      Appearance: =If(nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                      DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                      FontWeight: =""
+                                                      Height: =36
+                                                      Size: =12
+                                                      OnSelect: |-
+                                                        =Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {DRFRequired: "Yes"}); MarkU035Dirty(_rowKey)
+                                                      Text: ="Yes"
+                                                      Width: =80
+                                                - btnSubDrfNo:
+                                                    Control: ModernButton@1.0.0
+                                                    Properties:
+                                                      Appearance: =If(!(nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes"), ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                      DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                      FontWeight: =""
+                                                      Height: =36
+                                                      Size: =12
+                                                      OnSelect: |-
+                                                        =Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {DRFRequired: "No"}); MarkU035Dirty(_rowKey)
+                                                      Text: ="No"
+                                                      Width: =80
+                                    - vctrFinalCatField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =200
+                                        Children:
+                                          - lblFinalCat:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="Final CAT"
+                                          - txtSubFinalCat:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =nfU035Sub(_rowKey, _subKey).FinalCAT
+                                                Height: =36
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                OnChange: |-
+                                                  =If(Self.Text <> Coalesce(nfU035Sub(_rowKey, _subKey).FinalCAT, ""), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {FinalCAT: Self.Text}); MarkU035Dirty(_rowKey))
+                              - hctrSubRemarksRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =84
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutMinHeight: =84
+                                  Children:
+                                    - vctrSubRemarksField:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          Height: =56
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =4
+                                          LayoutMinWidth: =600
+                                          FillPortions: =1
+                                        Children:
+                                          - lblSubRemarks:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: ="Remarks"
+                                          - txtSubRemarks:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =nfU035Sub(_rowKey, _subKey).Remarks
+                                                Height: =60
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                OnChange: |-
+                                                  =If(Self.Text <> Coalesce(nfU035Sub(_rowKey, _subKey).Remarks, ""), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {Remarks: Self.Text}); MarkU035Dirty(_rowKey))
+                              - hctrSubDrfRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =thmU035.WarnBg
+                                    FillPortions: =0
+                                    Height: =56
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =56
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Visible: =nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes"
+                                  Children:
+                                    - lblSubDrfHint:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.WarnText
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Semibold
+                                          LayoutMinWidth: =1
+                                          Size: =12
+                                          Text: |-
+                                            =$"DRF required: {CountRows(Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey))} defect row(s) entered"
+                                    - btnSubOpenDrf:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Open DRF defect details"
+                                          BasePaletteColor: =thmU035.Primary
+                                          FontWeight: =""
+                                          Height: =36
+                                          Icon: ="Edit"
+                                          OnSelect: |-
+                                            =UpdateContext({_drfModalOpen: true, _drfChildKey: Coalesce(First(Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey)).DrfId, "")})
+                                          Text: ="DRF Details"
+                                          Width: =150
+                              - hctrSubNav:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =44
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =44
+                                  Children:
+                                    - btnSubPrev:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Previous subtask"
+                                          Appearance: =ButtonAppearance.Secondary
+                                          FontWeight: =""
+                                          Height: =36
+                                          Icon: ="ArrowLeft"
+                                          OnSelect: |-
+                                            =With({target: nfU035AdjacentSubtask(_rowKey, _subKey, -1)}, EnsureU035Sub(_rowKey, target); UpdateContext({_subKey: target}))
+                                          Text: ="Previous"
+                                          Width: =120
+                                    - btnSubNext:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Next subtask"
+                                          BasePaletteColor: =thmU035.Primary
+                                          FontWeight: =""
+                                          Height: =36
+                                          Icon: ="ArrowRight"
+                                          OnSelect: |-
+                                            =With({target: nfU035AdjacentSubtask(_rowKey, _subKey, 1)}, EnsureU035Sub(_rowKey, target); UpdateContext({_subKey: target}))
+                                          Text: ="Next"
+                                          Width: =120
+                  - hctrCurrentTargetFooter:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =thmU035.Border
+                        BorderThickness: =1
+                        Fill: =thmU035.SurfaceAlt
+                        Height: =56
+                        LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutGap: =12
-                        LayoutWrap: =true
+                        LayoutGap: =10
+                        PaddingLeft: =12
+                        PaddingRight: =12
                         Width: =Parent.Width - 24
                         X: =12
-                        Y: =76
+                        Y: =Parent.Height - 68
                       Children:
-                        - vctrDoiField:
-                            Control: GroupContainer@1.5.0
-                            Variant: AutoLayout
+                        - lblFooterProgress:
+                            Control: ModernText@1.0.0
                             Properties:
-                              Height: =52
-                              LayoutDirection: =LayoutDirection.Vertical
-                              LayoutGap: =4
-                              LayoutMinWidth: =220
-                            Children:
-                              - lblDoi:
-                                  Control: ModernText@1.0.0
-                                  Properties:
-                                    Size: =11
-                                    Text: ="Date of Inspection"
-                              - txtCurrentTargetDoi:
-                                  Control: ModernTextInput@1.1.2
-                                  Properties:
-                                    Default: =If(IsBlank(varCurrentTarget.DOI), "", Text(varCurrentTarget.DOI, "[$-en-US]mm/dd/yyyy"))
-                                    Height: =36
-                                    OnChange: |-
-                                      =Patch(
-                                          colParentResults,
-                                          LookUp(
-                                              colParentResults,
-                                              InspectionResultId = varCurrentTarget.InspectionResultId
-                                          ),
-                                          {
-                                              DOI: DateValue(Self.Text),
-                                              IsDirty: true
-                                          }
-                                      )
-                        - vctrAsFoundField:
-                            Control: GroupContainer@1.5.0
-                            Variant: AutoLayout
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =thmU035.Heading
+                              FontWeight: =FontWeight.Semibold
+                              Size: =12
+                              Text: =$"{nfU035SubDoneCount(_rowKey)} of {CountRows(nfU035EglSubtasks(_rowKey))} subtasks complete"
+                              Width: =200
+                        - lblFooterSignature:
+                            Control: ModernText@1.0.0
                             Properties:
-                              Height: =52
-                              LayoutDirection: =LayoutDirection.Vertical
-                              LayoutGap: =4
-                              LayoutMinWidth: =180
-                            Children:
-                              - lblAsFound:
-                                  Control: ModernText@1.0.0
-                                  Properties:
-                                    Size: =11
-                                    Text: ="As Found CAT"
-                              - txtCurrentTargetAsFound:
-                                  Control: ModernTextInput@1.1.2
-                                  Properties:
-                                    Default: =varCurrentTarget.AsFoundCAT
-                                    Height: =36
-                                    OnChange: |-
-                                      =Patch(
-                                          colParentResults,
-                                          LookUp(
-                                              colParentResults,
-                                              InspectionResultId = varCurrentTarget.InspectionResultId
-                                          ),
-                                          {
-                                              AsFoundCAT: Self.Text,
-                                              IsDirty: true
-                                          }
-                                      )
-                        - vctrVisualDefectsField:
-                            Control: GroupContainer@1.5.0
-                            Variant: AutoLayout
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =thmU035.TextMuted
+                              FillPortions: =1
+                              LayoutMinWidth: =1
+                              Size: =12
+                              Text: |-
+                                =If(nfU035ParentSigned(_rowKey), "Signed: " & nfU035Parent(_rowKey).Signature, If(nfU035ParentComplete(_rowKey), "All subtasks complete. Ready to sign.", "Complete every subtask to enable signing."))
+                        - btnFooterSign:
+                            Control: ModernButton@1.0.0
                             Properties:
-                              Height: =52
-                              LayoutDirection: =LayoutDirection.Vertical
-                              LayoutGap: =4
-                              LayoutMinWidth: =180
-                            Children:
-                              - lblVisualDefects:
-                                  Control: ModernText@1.0.0
-                                  Properties:
-                                    Size: =11
-                                    Text: ="Visual Defects"
-                              - txtCurrentTargetVisualDefects:
-                                  Control: ModernTextInput@1.1.2
-                                  Properties:
-                                    Default: =varCurrentTarget.VisualDefects
-                                    Height: =36
-                                    OnChange: |-
-                                      =Patch(
-                                          colParentResults,
-                                          LookUp(
-                                              colParentResults,
-                                              InspectionResultId = varCurrentTarget.InspectionResultId
-                                          ),
-                                          {
-                                              VisualDefects: Self.Text,
-                                              IsDirty: true
-                                          }
-                                      )
-                        - vctrFinalCatField:
-                            Control: GroupContainer@1.5.0
-                            Variant: AutoLayout
+                              AccessibleLabel: ="Sign this task"
+                              BasePaletteColor: =thmU035.Primary
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Edit"
+                              DisplayMode: =If(nfInWorkingStatus && nfU035ParentComplete(_rowKey) && !nfU035ParentSigned(_rowKey), DisplayMode.Edit, DisplayMode.Disabled)
+                              OnSelect: |-
+                                =Patch(colParentResults, LookUp(colParentResults, OrderNumber = _rowKey), {Signature: $"{User().FullName} ({varID}) {Text(Now(), "yyyy-mm-dd hh:mm")}", IsDirty: true})
+                              Text: ="Sign Task"
+                              Visible: =!nfU035ParentSigned(_rowKey)
+                              Width: =130
+                        - btnFooterUnsign:
+                            Control: ModernButton@1.0.0
                             Properties:
-                              Height: =52
-                              LayoutDirection: =LayoutDirection.Vertical
-                              LayoutGap: =4
-                              LayoutMinWidth: =180
-                            Children:
-                              - lblFinalCat:
-                                  Control: ModernText@1.0.0
-                                  Properties:
-                                    Size: =11
-                                    Text: ="Final CAT"
-                              - txtCurrentTargetFinalCat:
-                                  Control: ModernTextInput@1.1.2
-                                  Properties:
-                                    Default: =varCurrentTarget.FinalCAT
-                                    Height: =36
-                                    OnChange: |-
-                                      =Patch(
-                                          colParentResults,
-                                          LookUp(
-                                              colParentResults,
-                                              InspectionResultId = varCurrentTarget.InspectionResultId
-                                          ),
-                                          {
-                                              FinalCAT: Self.Text,
-                                              IsDirty: true
-                                          }
-                                      )
-                  - vctrCurrentTargetReference:
+                              AccessibleLabel: ="Remove signature"
+                              Appearance: =ButtonAppearance.Secondary
+                              FontWeight: =""
+                              Height: =36
+                              DisplayMode: =If(nfU035CanRemoveSigByCode(_rowKey), DisplayMode.Edit, DisplayMode.Disabled)
+                              OnSelect: |-
+                                =Patch(colParentResults, LookUp(colParentResults, OrderNumber = _rowKey), {Signature: "", IsDirty: true})
+                              Text: ="Remove Signature"
+                              Visible: =nfU035ParentSigned(_rowKey)
+                              Width: =160
+                        - btnFooterDone:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close task"
+                              Appearance: =ButtonAppearance.Secondary
+                              FontWeight: =""
+                              Height: =36
+                              OnSelect: |-
+                                =UpdateContext({_rowModalOpen: false, _drfModalOpen: false, _rowKey: "", _subKey: "", _drfChildKey: ""})
+                              Text: ="Close"
+                              Width: =100
+      - ctrDrfModal:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =thmU035.Overlay
+            Height: =Parent.Height
+            Visible: =_drfModalOpen
+            Width: =Parent.Width
+          Children:
+            - vctrDrfCard:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =thmU035.Border
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.ExtraBold
+                  Fill: =thmU035.Surface
+                  Height: =Min(Parent.Height - 160, 700)
+                  Width: =Min(Parent.Width - 160, 1100)
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =(Parent.Height - Self.Height) / 2
+                Children:
+                  - hctrDrfHeader:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
                         Height: =56
-                        LayoutDirection: =LayoutDirection.Vertical
-                        LayoutGap: =4
-                        Width: =Parent.Width - 24
-                        X: =12
-                        Y: =208
-                      Children:
-                        - lblReferenceNotes:
-                            Control: ModernText@1.0.0
-                            Properties:
-                              Size: =11
-                              Text: ="Reference Notes"
-                        - txtReferenceNotesView:
-                            Control: ModernTextInput@1.1.2
-                            Properties:
-                              Default: =varCurrentTarget.ReferenceNotes
-                              DisplayMode: =DisplayMode.View
-                              Height: =36
-                              Width: =Parent.Width
-                  - vctrCurrentTargetRemarks:
-                      Control: GroupContainer@1.5.0
-                      Variant: AutoLayout
-                      Properties:
-                        Height: =72
-                        LayoutDirection: =LayoutDirection.Vertical
-                        LayoutGap: =4
-                        Width: =Parent.Width - 24
-                        X: =12
-                        Y: =272
-                      Children:
-                        - lblRemarks:
-                            Control: ModernText@1.0.0
-                            Properties:
-                              Size: =11
-                              Text: ="Remarks"
-                        - txtCurrentTargetRemarks:
-                            Control: ModernTextInput@1.1.2
-                            Properties:
-                              Default: =varCurrentTarget.Remarks
-                              Height: =44
-                              OnChange: |-
-                                =Patch(
-                                    colParentResults,
-                                    LookUp(
-                                        colParentResults,
-                                        InspectionResultId = varCurrentTarget.InspectionResultId
-                                    ),
-                                    {
-                                        Remarks: Self.Text,
-                                        IsDirty: true
-                                    }
-                                )
-                              Width: =Parent.Width
-                  - hctrCurrentTargetSubtaskHeader:
-                      Control: GroupContainer@1.5.0
-                      Variant: AutoLayout
-                      Properties:
-                        Height: =34
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutGap: =8
+                        LayoutGap: =10
                         PaddingLeft: =8
                         PaddingRight: =8
                         Width: =Parent.Width - 24
                         X: =12
-                        Y: =352
+                        Y: =12
                       Children:
-                        - lblSubtaskHdrCode:
+                        - lblDrfCode:
                             Control: ModernText@1.0.0
                             Properties:
-                              FillPortions: =1.2
+                              Align: =Align.Center
+                              Color: =thmU035.ChipText
+                              Fill: =thmU035.ChipFill
                               FontWeight: =FontWeight.Bold
-                              Size: =11
-                              Text: ="Subtask"
-                        - lblSubtaskHdrTitle:
-                            Control: ModernText@1.0.0
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =0
+                              RadiusBottomLeft: =15
+                              RadiusBottomRight: =15
+                              RadiusTopLeft: =15
+                              RadiusTopRight: =15
+                              Size: =12
+                              Text: =_rowKey & " / " & _subKey
+                              Width: =220
+                        - vctrDrfTitle:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
                             Properties:
-                              FillPortions: =4
-                              FontWeight: =FontWeight.Bold
-                              Size: =11
-                              Text: ="Description"
-                        - lblSubtaskHdrStatus:
-                            Control: ModernText@1.0.0
+                              FillPortions: =1
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutMinHeight: =1
+                              LayoutMinWidth: =1
+                            Children:
+                              - lblDrfTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =thmU035.Heading
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =26
+                                    Size: =18
+                                    Text: ="DRF Details"
+                              - lblDrfSubtitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =thmU035.TextMuted
+                                    Height: =18
+                                    Size: =11
+                                    Text: =LookUp(nfU035EglSubtasks(_rowKey), ItemCode = _subKey).ItemText
+                        - btnDrfClose:
+                            Control: ModernButton@1.0.0
                             Properties:
-                              FillPortions: =2
-                              FontWeight: =FontWeight.Bold
-                              Size: =11
-                              Text: ="Status"
-                        - lblSubtaskHdrNotes:
-                            Control: ModernText@1.0.0
-                            Properties:
-                              FillPortions: =3
-                              FontWeight: =FontWeight.Bold
-                              Size: =11
-                              Text: ="Notes"
-                  - galCurrentTargetSubtasks:
+                              AccessibleLabel: ="Close DRF details"
+                              BasePaletteColor: =thmU035.Primary
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Checkmark"
+                              OnSelect: |-
+                                =UpdateContext({_drfModalOpen: false, _drfChildKey: ""})
+                              Text: ="Done"
+                              Width: =100
+                  - btnDrfAddRow:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Add a defect row"
+                        BasePaletteColor: =thmU035.Primary
+                        DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="Add"
+                        OnSelect: |-
+                          =With({newId: Text(GUID())}, Collect(colSubtaskDrf, {DrfId: newId, ParentCode: _rowKey, ItemCode: _subKey, DefectLocation: "", DefectDescription: "", FaceDefectOnly: false, DepthB: 0, MinimumWallC: 0, WallCalculation: 0, AdjacentWallThickness: "", AmountBelowMin: 0, MeasurementMethod: "", Notes: ""}); UpdateContext({_drfChildKey: newId}));
+                          MarkU035Dirty(_rowKey)
+                        Text: ="Add defect row"
+                        Width: =300
+                        X: =12
+                        Y: =76
+                  - galDrfRows:
                       Control: Gallery@2.15.0
                       Variant: Vertical
                       Properties:
-                        AccessibleLabel: ="EGL subtasks for selected task"
-                        Height: =Parent.Height - 398
-                        Items: =nfU035EglSubtasks(varCurrentTarget.OrderNumber)
-                        TemplateSize: =84
-                        Width: =Parent.Width - 24
+                        AccessibleLabel: ="DRF defect rows for the selected subtask"
+                        BorderColor: =thmU035.Border
+                        Height: =Parent.Height - 132
+                        Items: =Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey)
+                        TemplateSize: =68
+                        Width: =300
                         X: =12
-                        Y: =386
+                        Y: =120
                       Children:
-                        - hctrCurrentTargetSubtaskRow:
+                        - ctrDrfRow:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.Semilight
-                              Fill: =thmU035.SurfaceAlt
-                              Height: =76
+                              Fill: =If(ThisItem.DrfId = _drfChildKey, thmU035.SelectedFill, thmU035.SurfaceAlt)
+                              Height: =60
                               LayoutAlignItems: =LayoutAlignItems.Center
-                              LayoutDirection: =LayoutDirection.Horizontal
-                              LayoutGap: =8
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =2
                               PaddingLeft: =10
                               PaddingRight: =10
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
                               Width: =Parent.TemplateWidth - 8
                               X: =4
                               Y: =4
                             Children:
-                              - lblSubtaskCode:
+                              - lblDrfRowTitle:
                                   Control: ModernText@1.0.0
                                   Properties:
-                                    Color: =thmU035.Primary
-                                    FillPortions: =1.2
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =thmU035.Heading
                                     FontWeight: =FontWeight.Bold
+                                    Height: =22
                                     Size: =12
-                                    Text: =ThisItem.ItemCode
-                              - lblSubtaskTitle:
+                                    Text: =Coalesce(ThisItem.DefectLocation, "New defect")
+                              - lblDrfRowMeta:
                                   Control: ModernText@1.0.0
                                   Properties:
-                                    Color: =thmU035.Text
-                                    FillPortions: =4
-                                    Size: =12
-                                    Text: =ThisItem.ItemText
-                              - txtSubtaskStatus:
-                                  Control: ModernTextInput@1.1.2
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Height: =18
+                                    Size: =11
+                                    Color: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, thmU035.WarnText, thmU035.SuccessText)
+                                    Text: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "Complete")
+                        - btnDrfRowSelect:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Open this defect row"
+                              Appearance: =ButtonAppearance.Transparent
+                              Color: =Color.Transparent
+                              FontWeight: =""
+                              Height: =60
+                              OnSelect: |-
+                                =UpdateContext({_drfChildKey: ThisItem.DrfId})
+                              Text: =""
+                              Width: =Parent.TemplateWidth - 8
+                              X: =4
+                              Y: =4
+                  - vctrDrfEditor:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - 88
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        Visible: =!IsBlank(_drfChildKey)
+                        Width: =Parent.Width - 336
+                        X: =324
+                        Y: =76
+                      Children:
+                        - hctrDrfEditorHeader:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =36
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMinHeight: =36
+                            Children:
+                              - lblDrfEditorTitle:
+                                  Control: ModernText@1.0.0
                                   Properties:
-                                    FillPortions: =2
-                                    Height: =36
-                              - txtSubtaskNotes:
-                                  Control: ModernTextInput@1.1.2
+                                    Color: =thmU035.Heading
+                                    FillPortions: =1
+                                    FontWeight: =FontWeight.Bold
+                                    Size: =14
+                                    Text: ="Defect details"
+                              - btnDrfDeleteRow:
+                                  Control: ModernButton@1.0.0
                                   Properties:
-                                    FillPortions: =3
+                                    AccessibleLabel: ="Delete this defect row"
+                                    Appearance: =ButtonAppearance.Subtle
+                                    Color: =thmU035.Danger
+                                    DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                    FontWeight: =""
                                     Height: =36
+                                    Icon: ="Delete"
+                                    OnSelect: |-
+                                      =RemoveIf(colSubtaskDrf, DrfId = _drfChildKey);
+                                      UpdateContext({_drfChildKey: ""});
+                                      MarkU035Dirty(_rowKey)
+                                    Text: ="Delete row"
+                                    Width: =130
+                        - hctrDrfFields:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Height: =Parent.Height - 70
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =12
+                              LayoutMinHeight: =1
+                              LayoutWrap: =true
+                            Children:
+                              - vctrLocationField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblLocation:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Defect Location"
+                                    - txtDrfLocation:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =nfU035Drf(_drfChildKey).DefectLocation
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).DefectLocation, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DefectLocation: Self.Text}); MarkU035Dirty(_rowKey))
+                              - vctrDescriptionField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =360
+                                    FillPortions: =1
+                                  Children:
+                                    - lblDescription:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Defect Description (Length X Width)"
+                                    - txtDrfDescription:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =nfU035Drf(_drfChildKey).DefectDescription
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).DefectDescription, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DefectDescription: Self.Text}); MarkU035Dirty(_rowKey))
+                              - vctrFaceOnlyField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblFaceOnly:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Face Defect Only"
+                                    - hctrDrfFaceToggle:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Height: =36
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =8
+                                        Children:
+                                          - btnDrfFaceYes:
+                                              Control: ModernButton@1.0.0
+                                              Properties:
+                                                Appearance: =If(nfU035Drf(_drfChildKey).FaceDefectOnly, ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                FontWeight: =""
+                                                Height: =36
+                                                Size: =12
+                                                OnSelect: |-
+                                                  =Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {FaceDefectOnly: true}); MarkU035Dirty(_rowKey)
+                                                Text: ="Yes"
+                                                Width: =80
+                                          - btnDrfFaceNo:
+                                              Control: ModernButton@1.0.0
+                                              Properties:
+                                                Appearance: =If(!(nfU035Drf(_drfChildKey).FaceDefectOnly), ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                FontWeight: =""
+                                                Height: =36
+                                                Size: =12
+                                                OnSelect: |-
+                                                  =Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {FaceDefectOnly: false}); MarkU035Dirty(_rowKey)
+                                                Text: ="No"
+                                                Width: =80
+                              - vctrDepthBField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblDepthB:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Depth (B)"
+                                    - txtDrfDepthB:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =If(nfU035Drf(_drfChildKey).DepthB = 0, "", Text(nfU035Drf(_drfChildKey).DepthB))
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).DepthB, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DepthB: n}); MarkU035Dirty(_rowKey)))
+                              - vctrMinWallCField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblMinWallC:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Minimum Wall Thickness (C)"
+                                    - txtDrfMinWallC:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =If(nfU035Drf(_drfChildKey).MinimumWallC = 0, "", Text(nfU035Drf(_drfChildKey).MinimumWallC))
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).MinimumWallC, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MinimumWallC: n}); MarkU035Dirty(_rowKey)))
+                              - vctrWallCalcField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblWallCalc:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Wall Calculation"
+                                    - txtDrfWallCalc:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =If(nfU035Drf(_drfChildKey).WallCalculation = 0, "", Text(nfU035Drf(_drfChildKey).WallCalculation))
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).WallCalculation, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: n}); MarkU035Dirty(_rowKey)))
+                              - vctrAdjWallField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblAdjWall:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Adjacent Unaffected Wall Thickness"
+                                    - txtDrfAdjWall:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =nfU035Drf(_drfChildKey).AdjacentWallThickness
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).AdjacentWallThickness, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {AdjacentWallThickness: Self.Text}); MarkU035Dirty(_rowKey))
+                              - vctrBelowMinField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblBelowMin:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Amount Below Dwg Min"
+                                    - txtDrfBelowMin:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =If(nfU035Drf(_drfChildKey).AmountBelowMin = 0, "", Text(nfU035Drf(_drfChildKey).AmountBelowMin))
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).AmountBelowMin, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {AmountBelowMin: n}); MarkU035Dirty(_rowKey)))
+                              - vctrMeasMethodField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =240
+                                  Children:
+                                    - lblMeasMethod:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Measurement Method"
+                                    - txtDrfMeasMethod:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =nfU035Drf(_drfChildKey).MeasurementMethod
+                                          Height: =36
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).MeasurementMethod, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MeasurementMethod: Self.Text}); MarkU035Dirty(_rowKey))
+                              - vctrDrfNotesField:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    Height: =56
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinWidth: =600
+                                    FillPortions: =1
+                                  Children:
+                                    - lblDrfNotes:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.TextMuted
+                                          Size: =11
+                                          Text: ="Notes"
+                                    - txtDrfDrfNotes:
+                                        Control: ModernTextInput@1.1.2
+                                        Properties:
+                                          Default: =nfU035Drf(_drfChildKey).Notes
+                                          Height: =60
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          OnChange: |-
+                                            =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).Notes, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {Notes: Self.Text}); MarkU035Dirty(_rowKey))

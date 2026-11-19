@@ -1033,11 +1033,14 @@ App:
       });
       U035DrfCatalogTableType := Type([U035DrfCatalogRecordType]);
 
-      // All DRF forms and their types.
-      // TODO: add the MOD filter once the MOD column name on this table is confirmed,
-      // e.g. Filter('U035 Inspection Requirements', <MOD column> = nfModNumber).
+      // All DRF forms for the current MOD, with their types.
+      // MOD column on this table: display name Mod (schema impact_Mod). Value() lets it
+      // match whether the column stores 1, "1" or "01"; rows with a non-numeric Mod are skipped.
       nfU035DrfCatalog = ForAll(
-          'U035 Inspection Requirements',
+          Filter(
+              'U035 Inspection Requirements',
+              IfError(Value(ThisRecord.Mod), -1) = nfModNumber
+          ),
           {
               Title: ThisRecord.'UROMODDRF Title',
               DrfType: ThisRecord.'DRF Type'
@@ -1081,6 +1084,19 @@ App:
               SortOrder.Ascending
           )
       );
+
+      // ----------------------------------------------------------------------------
+      // WALL CALCULATION PRECISION  (README: keep full precision)
+      // The stored value is never rounded. To change decimals later, edit ONE of these:
+      //   * Display only (box text):   nfU035WallCalcDisplay below, e.g. Text(Round(v, 2))
+      //   * Stored value too:          wrap the results in nfU035DrfCalc below with Round(..., 2)
+      //   * Edit-detection tolerance:  nfU035WallCalcTolerance below (keep it smaller than
+      //     the smallest step you display, or typing the same number will look like an edit)
+      // ----------------------------------------------------------------------------
+      nfU035WallCalcTolerance = 0.0000001;
+
+      nfU035WallCalcDisplay(v: Number): Text =
+      Text(v);
 
       // Type A = % wall reduction, Type B = actual wall remaining. Blank type = 0.
       nfU035DrfCalc(drfType: Text, b: Number, c: Number): Number =

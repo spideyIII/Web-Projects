@@ -261,4 +261,60 @@ Else if parent title contains torpedo tube → filter by torpedo tube
 
 Else fall back to all DRFs for the mod
 
+_____________________________________________________________________________________________________________________________________________________________________________
+Mod 01 — General Notes
+Tools, Parts, Material & Test Equipment: None. 
+
+The requirements within this URO MRC shall not be changed unless specifically approved by NAVSEA (05U7). 
+
+A SUBMEPP Product Feedback Form is provided at the end of this URO MRC for the user to report configuration changes and identify any user comments associated with this URO MRC. 
+
+The intent of this inspection is to examine to the maximum extent practical the internal and external surfaces of components listed in the Equipment Guide List (EGL) to identify as arrived degradation or damage. 
+
+100% of the insulation must be removed from the Trash Disposal Unit/Ejector Barrel to accomplish this URO MRC. Reinstallation of the insulation is not required. 
+
+Screwed or bolted-in gratings do not constitute an inaccessible condition for inspection, specifically the gratings covering the slide valves on torpedo tubes. 
+
+Any defect below minimum drawing dimensions for certain areas of the slide valve wall thickness is unacceptable based on SUBSAFE Design Review; refer to Step 2.C. for guidance. 
+
+Inform NAVSEA (05U7), by faxed letter or message, of any major repairs planned as a result of conducting inspections. Major repairs include structural effects to pressure-containing portions through welding, brazing, or similar fabrication, and installation of new pressure-boundary parts/components not previously strength tested. 
+
+If delay of ship is involved or if deferring specific repairs is desired for other valid reasons, forward information to Type Commander for detailed guidance. Identify location, extent, and type of defect. 
+
+Applicable hull and backup valves associated with listed components shall be inspected in accordance with URO MRC 008. Hull welds and hull inserts and/or liners shall be inspected in accordance with URO MRCs 001 and/or 003, as applicable. TDU muzzle valve and signal ejector (or equivalent) hull valves do not require inspection by this URO MRC. 
+
+A Major Departure from Specification is required to be submitted to NAVSEA for approval for any component, other than Torpedo Tube Slide Valves, found in Category B or C condition and remaining in service. 
+
+Mod 70 — General Notes
+Tools, Parts, Material & Test Equipment: Depth gage, inside/outside micrometers, inside/outside calipers, flashlight. 
+
+The requirements within this URO MRC shall not be changed unless specifically approved by NAVSEA (05U7). 
+
+A SUBMEPP Product Feedback Form is provided at the end of this URO MRC for the user to report configuration changes and identify any user comments associated with this URO MRC. 
+
+The intent of this inspection is to examine to the maximum extent practical the internal and external surfaces of components listed in the Equipment Guide List (EGL) to identify deterioration or damage. 
+
+Screwed or bolted-in gratings do not constitute an inaccessible condition for inspection, specifically the gratings covering the slide valves on torpedo tubes. 
+
+Inform NAVSEA (05U7), by faxed letter or message, of any major repairs planned as a result of conducting inspections. Major repairs include structural effects to pressure-containing portions through welding, brazing, or similar fabrication, and installation of new pressure-boundary parts/components not previously strength tested. 
+
+If delay of ship is involved or if deferring specific repairs is desired for other valid reasons, forward information to Type Commander for detailed guidance. Identify location, extent, and type of defect. 
+
+Applicable hull and backup valves associated with listed components shall be inspected in accordance with criteria of URO MRC 008. Hull welds, hull inserts and/or liners, and torpedo tube lands and their associated non-ferrous welds shall be inspected in accordance with URO MRCs 001 and/or 003 as applicable. TDU muzzle valve and ICL (or equivalent) hull valves do not require inspection by this URO MRC. 
+
+A Major Departure from Specification is required to be submitted to NAVSEA for approval for any component, other than Torpedo Tube Slide Valves, found in Category B or C condition and remaining in service. 
+
+Any defect greater than 0.030" below minimum drawing dimensions for slide valve wall thickness is unacceptable based on SUBSAFE Design Review. Refer to Procedure Section Step 2.C. for guidance. 
+
+Mod 80 — General Notes
+The retrieved Mod 80 text shows 4 General Notes. 
+
+The requirements within this URO MRC shall not be changed unless specifically approved by NAVSEA (05U7). 
+
+A SUBMEPP Product Feedback Form is provided at the end of this URO MRC for the user to report configuration changes and identify any user comments associated with this URO MRC. 
+
+Inform NAVSEA (05U7), by letter or transmittal, of any major repairs planned as a result of conducting inspections. Major repairs include structural effects to pressure-containing portions through welding, brazing, or similar fabrication, and installation of new pressure-boundary parts/components not previously strength tested. 
+
+Applicable hull and backup valves associated with listed components shall be inspected in accordance with criteria of URO MRC 008. Hull welds, hull inserts and/or liners, and torpedo tube lands and their associated non-ferrous welds shall be inspected in accordance with URO MRCs 001 and/or 003 as applicable. TDU and IAL muzzle valves do not require inspection. 
+
 The DRF calculation branch varies by DRFType A/B, not by MOD. 

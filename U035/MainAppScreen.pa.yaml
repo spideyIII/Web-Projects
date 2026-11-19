@@ -39,6 +39,8 @@ Screens:
                   _drfRowKey: "",
                   _rowKey: "",
                   _subKey: "",
+                  _refEglParent: "",
+                  _refSearch: "",
                   _drfShowAll: false
               }
           );
@@ -251,7 +253,9 @@ Screens:
                           =UpdateContext({
                               _refPopupOpen: true,
                               _refPopupView: "EGL",
-                              _refImageIndex: 1
+                              _refImageIndex: 1,
+                              _refEglParent: "",
+                              _refSearch: ""
                           })
                         PaddingBottom: =5
                         PaddingLeft: =5
@@ -1439,6 +1443,24 @@ Screens:
                                     LayoutMinWidth: =1
                                     Size: =11
                                     Text: =$"{nfU035SubDoneCount(_rowKey)} of {CountRows(nfU035EglSubtasks(_rowKey))} subtasks complete"
+                        - btnCurrentTargetReference:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Open reference for this task"
+                              Appearance: =ButtonAppearance.Subtle
+                              Color: =thmU035.Link
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Info"
+                              OnSelect: |-
+                                =UpdateContext({
+                                    _refPopupOpen: true,
+                                    _refPopupView: "EGL",
+                                    _refEglParent: _rowKey,
+                                    _refSearch: ""
+                                })
+                              Text: ="Reference"
+                              Width: =110
                         - btnCurrentTargetDelete:
                             Control: ModernButton@1.0.0
                             Properties:
@@ -2697,6 +2719,360 @@ Screens:
                                           DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                           OnChange: |-
                                             =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).Notes, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {Notes: Self.Text}); MarkU035Dirty(_rowKey))
+      - ctrReferencePopup:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =thmU035.Overlay
+            Height: =Parent.Height
+            Visible: =_refPopupOpen
+            Width: =Parent.Width
+          Children:
+            - vctrReferenceCard:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =thmU035.Border
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.ExtraBold
+                  Fill: =thmU035.Surface
+                  Height: =Parent.Height - 96
+                  Width: =Parent.Width - 96
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =(Parent.Height - Self.Height) / 2
+                Children:
+                  - hctrRefHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =12
+                      Children:
+                        - lblRefTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =thmU035.Heading
+                              FillPortions: =1
+                              FontWeight: =FontWeight.Bold
+                              Size: =18
+                              Text: =$"Reference  ·  MOD {nfModNumber}"
+                        - btnRefClose:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close reference"
+                              Appearance: =ButtonAppearance.Subtle
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Dismiss"
+                              Layout: =ButtonLayout.IconOnly
+                              OnSelect: =UpdateContext({_refPopupOpen: false})
+                              Text: =""
+                              Width: =36
+                  - hctrRefTabs:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =40
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =64
+                      Children:
+                  - btnRefTabGn:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Show General Notes"
+                        Appearance: =If(_refPopupView = "GN", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                        FontWeight: =""
+                        Height: =34
+                        OnSelect: =UpdateContext({_refPopupView: "GN"})
+                        Text: ="General Notes"
+                        Width: =140
+                  - btnRefTabEgl:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Show EGL"
+                        Appearance: =If(_refPopupView = "EGL", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                        FontWeight: =""
+                        Height: =34
+                        OnSelect: =UpdateContext({_refPopupView: "EGL"})
+                        Text: ="EGL"
+                        Width: =100
+                  - btnRefTabImages:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Show Images"
+                        Appearance: =If(_refPopupView = "Images", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                        FontWeight: =""
+                        Height: =34
+                        OnSelect: =UpdateContext({_refPopupView: "Images"})
+                        Text: ="Images"
+                        Width: =100
+                  - lblRefGnPlaceholder:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Align: =Align.Center
+                        Color: =thmU035.TextMuted
+                        Height: =60
+                        Size: =14
+                        Text: ="General Notes will be added here."
+                        Visible: =_refPopupView = "GN"
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =120
+                  - lblRefImagesPlaceholder:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Align: =Align.Center
+                        Color: =thmU035.TextMuted
+                        Height: =60
+                        Size: =14
+                        Text: ="Reference images will be added here."
+                        Visible: =_refPopupView = "Images"
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =120
+                  - vctrRefEgl:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height - 124
+                        Visible: =_refPopupView = "EGL"
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =112
+                      Children:
+                        - txtRefSearch:
+                            Control: ModernTextInput@1.1.2
+                            Properties:
+                              AccessibleLabel: ="Search EGL tasks"
+                              Default: =_refSearch
+                              Height: =36
+                              OnChange: =UpdateContext({_refSearch: Self.Text})
+                              Placeholder: ="Search code or title..."
+                              TriggerOutput: =TriggerOutput.Delayed
+                              Width: =Max(280, Parent.Width * 0.3)
+                              X: =0
+                              Y: =0
+                        - galRefParents:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="EGL tasks"
+                              BorderColor: =thmU035.Border
+                              Height: =Parent.Height - 44
+                              Items: |-
+                                =Filter(
+                                    nfU035SelectableEglParents,
+                                    IsBlank(_refSearch) || _refSearch in SearchText
+                                )
+                              TemplateSize: =64
+                              Width: =Max(280, Parent.Width * 0.3)
+                              X: =0
+                              Y: =44
+                            Children:
+                              - ctrRefParentRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.Semilight
+                                    Fill: =If(ThisItem.ParentCode = Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode), thmU035.SelectedFill, thmU035.SurfaceAlt)
+                                    Height: =56
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                                  Children:
+                                    - lblRefParentCode:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =thmU035.ChipText
+                                          Fill: =thmU035.ChipFill
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =28
+                                          PaddingBottom: =0
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =5
+                                          RadiusBottomRight: =5
+                                          RadiusTopLeft: =5
+                                          RadiusTopRight: =5
+                                          Size: =12
+                                          Text: =ThisItem.ParentCode
+                                          Width: =64
+                                    - lblRefParentTitle:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.Heading
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Semibold
+                                          LayoutMinWidth: =1
+                                          Size: =12
+                                          Text: =ThisItem.ParentTitle
+                                    - lblRefParentInList:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.SuccessText
+                                          Size: =10
+                                          Text: ="In worklist"
+                                          Visible: =!IsBlank(LookUp(colParentResults, OrderNumber = ThisItem.ParentCode))
+                                          Width: =62
+                              - btnRefParentSelect:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =$"Show subtasks for {ThisItem.ParentCode}"
+                                    Appearance: =ButtonAppearance.Transparent
+                                    Color: =Color.Transparent
+                                    FontWeight: =""
+                                    Height: =56
+                                    OnSelect: =UpdateContext({_refEglParent: ThisItem.ParentCode})
+                                    Text: =""
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                        - vctrRefEglDetail:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Height: =Parent.Height
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              Width: =Parent.Width - (Max(280, Parent.Width * 0.3) + 12)
+                              X: =Max(280, Parent.Width * 0.3) + 12
+                              Y: =0
+                            Children:
+                              - hctrRefEglDetailHeader:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =40
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =40
+                                  Children:
+                                    - lblRefDetailCode:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =thmU035.ChipText
+                                          Fill: =thmU035.ChipFill
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          PaddingBottom: =0
+                                          PaddingLeft: =10
+                                          PaddingRight: =10
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =15
+                                          RadiusBottomRight: =15
+                                          RadiusTopLeft: =15
+                                          RadiusTopRight: =15
+                                          Size: =12
+                                          Text: =Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)
+                                          Width: =100
+                                    - lblRefDetailTitle:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.Heading
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Bold
+                                          LayoutMinWidth: =1
+                                          Size: =16
+                                          Text: =LookUp(nfU035SelectableEglParents, ParentCode = Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)).ParentTitle
+                                    - lblRefDetailCount:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.TextMuted
+                                          Size: =12
+                                          Text: =$"{CountRows(nfU035EglSubtasks(Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)))} subtasks"
+                                          Width: =100
+                              - galRefSubtasks:
+                                  Control: Gallery@2.15.0
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: ="EGL subtasks"
+                                    BorderColor: =thmU035.Border
+                                    FillPortions: =1
+                                    Items: =nfU035EglSubtasks(Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode))
+                                    TemplateSize: =64
+                                    Width: =Parent.Width
+                                  Children:
+                                    - ctrRefSubtaskRow:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.Semilight
+                                          Fill: =thmU035.SurfaceAlt
+                                          Height: =56
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =10
+                                          PaddingLeft: =10
+                                          PaddingRight: =10
+                                          RadiusBottomLeft: =6
+                                          RadiusBottomRight: =6
+                                          RadiusTopLeft: =6
+                                          RadiusTopRight: =6
+                                          Width: =Parent.TemplateWidth - 8
+                                          X: =4
+                                          Y: =4
+                                        Children:
+                                          - lblRefSubCode:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Center
+                                                Color: =thmU035.Primary
+                                                FontWeight: =FontWeight.Bold
+                                                Size: =12
+                                                Text: =ThisItem.ItemCode
+                                                Width: =90
+                                          - lblRefSubText:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Center
+                                                Color: =thmU035.Text
+                                                FillPortions: =1
+                                                LayoutMinWidth: =1
+                                                Size: =12
+                                                Text: =ThisItem.ItemText
+                                          - lblRefSubType:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Center
+                                                Color: =thmU035.TextMuted
+                                                Size: =11
+                                                Text: =ThisItem.ItemType
+                                                Width: =90
       - ctrLeaveConfirm:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout

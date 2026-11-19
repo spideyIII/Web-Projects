@@ -340,7 +340,6 @@ Screens:
                   - tmrU035InlineNotice:
                       Control: Timer@2.1.0
                       Properties:
-                        AccessibleLabel: ="Notification auto-dismiss timer"
                         AutoStart: =true
                         Duration: =250
                         Height: =1
@@ -3983,7 +3982,6 @@ Screens:
       - tmrFlashBell_1:
           Control: Timer@2.1.0
           Properties:
-            AccessibleLabel: ="Notification bell flash timer"
             AutoPause: =false
             AutoStart: =varShakeBell
             Duration: =500

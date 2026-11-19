@@ -1034,12 +1034,15 @@ App:
       U035DrfCatalogTableType := Type([U035DrfCatalogRecordType]);
 
       // All DRF forms for the current MOD, with their types.
-      // MOD column on this table: display name Mod (schema impact_Mod). Value() lets it
-      // match whether the column stores 1, "1" or "01"; rows with a non-numeric Mod are skipped.
+      // Source: 'U035 Impact Requirements'. MOD column: display name Mod (schema impact_Mod).
+      // The Filter is a plain column = value comparison so Dataverse evaluates it
+      // server-side (delegable). Do not wrap the column in IfError / Value / Text here:
+      // that makes the Filter non-delegable and brings back the delegation warning.
+      // If Mod is a TEXT column, change the right side to Text(nfModNumber).
       nfU035DrfCatalog = ForAll(
           Filter(
-              'U035 Inspection Requirements',
-              IfError(Value(ThisRecord.Mod), -1) = nfModNumber
+              'U035 Impact Requirements',
+              ThisRecord.Mod = nfModNumber
           ),
           {
               Title: ThisRecord.'UROMODDRF Title',

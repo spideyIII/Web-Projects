@@ -2773,7 +2773,8 @@ Screens:
                               Height: =36
                               Icon: ="Dismiss"
                               Layout: =ButtonLayout.IconOnly
-                              OnSelect: =UpdateContext({_refPopupOpen: false})
+                              OnSelect: |-
+                                =UpdateContext({_refPopupOpen: false})
                               Text: =""
                               Width: =36
                   - hctrRefTabs:
@@ -2796,7 +2797,8 @@ Screens:
                         Appearance: =If(_refPopupView = "GN", ButtonAppearance.Primary, ButtonAppearance.Secondary)
                         FontWeight: =""
                         Height: =34
-                        OnSelect: =UpdateContext({_refPopupView: "GN"})
+                        OnSelect: |-
+                          =UpdateContext({_refPopupView: "GN"})
                         Text: ="General Notes"
                         Width: =140
                   - btnRefTabEgl:
@@ -2806,7 +2808,8 @@ Screens:
                         Appearance: =If(_refPopupView = "EGL", ButtonAppearance.Primary, ButtonAppearance.Secondary)
                         FontWeight: =""
                         Height: =34
-                        OnSelect: =UpdateContext({_refPopupView: "EGL"})
+                        OnSelect: |-
+                          =UpdateContext({_refPopupView: "EGL"})
                         Text: ="EGL"
                         Width: =100
                   - btnRefTabImages:
@@ -2816,7 +2819,8 @@ Screens:
                         Appearance: =If(_refPopupView = "Images", ButtonAppearance.Primary, ButtonAppearance.Secondary)
                         FontWeight: =""
                         Height: =34
-                        OnSelect: =UpdateContext({_refPopupView: "Images"})
+                        OnSelect: |-
+                          =UpdateContext({_refPopupView: "Images"})
                         Text: ="Images"
                         Width: =100
                   - lblRefGnPlaceholder:
@@ -2861,7 +2865,8 @@ Screens:
                               AccessibleLabel: ="Search EGL tasks"
                               Default: =_refSearch
                               Height: =36
-                              OnChange: =UpdateContext({_refSearch: Self.Text})
+                              OnChange: |-
+                                =UpdateContext({_refSearch: Self.Text})
                               Placeholder: ="Search code or title..."
                               TriggerOutput: =TriggerOutput.Delayed
                               Width: =Max(280, Parent.Width * 0.3)
@@ -2950,7 +2955,8 @@ Screens:
                                     Color: =Color.Transparent
                                     FontWeight: =""
                                     Height: =56
-                                    OnSelect: =UpdateContext({_refEglParent: ThisItem.ParentCode})
+                                    OnSelect: |-
+                                      =UpdateContext({_refEglParent: ThisItem.ParentCode})
                                     Text: =""
                                     Width: =Parent.TemplateWidth - 8
                                     X: =4

@@ -2793,6 +2793,24 @@ Screens:
                   3000,
                   "Success"
               )
+            OnUpload: |-
+              =FeedbackUpload.Run(
+                  JSON(
+                      {
+                          RowGuid: varNewFeedbackRecord.'PK - Impact Feedback Item'
+                      }
+                  ),
+                  {
+                      name: cmpFeedback_1.UploadRecord.name,
+                      contentBytes: cmpFeedback_1.UploadRecord.contentBytes
+                  }
+              );
+              nfSendToast(
+                  "Feedback uploaded successfully",
+                  "Thank you!",
+                  3000,
+                  "Success"
+              )
             PanelWidth: =350
             PriorityChoices: =Choices('Impact Feedback Items'.Priority)
             RelatedRecordID: ="Text"

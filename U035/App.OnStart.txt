@@ -28,6 +28,9 @@ Set(varShakeTimestamp, Now());
 Set(varLastSeverity, "");
 Set(varFlashColor, false);
 Set(varU035HasRemovals, false);
+Set(varShowConfirmPopup, false);
+Set(varConfirmType, "");
+Set(varConfirmMessage, "");
 Set(varLastNotificationChecked, Now());
 
 

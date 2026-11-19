@@ -1,0 +1,14 @@
+Name,Item Code,Item Text,Item Type,Mod Number,Parent Code,Parent Title,Sort Key,IsSelectable
+M70-1.A,1.A,TORPEDO TUBES,Parent,70,1.A,TORPEDO TUBES,100,Yes
+M70-1.A.1,1.A.(1),[SIM] Inspect interior and exterior surfaces of the torpedo tubes,Child,70,1.A,TORPEDO TUBES,110,No
+M70-1.A.2,1.A.(2),[SIM] Inspect interior and exterior surfaces of the slide valves,Child,70,1.A,TORPEDO TUBES,120,No
+M70-1.A.3,1.A.(3),[SIM] Inspect interior and exterior surfaces of the breech doors,Child,70,1.A,TORPEDO TUBES,130,No
+M70-1.A.4,1.A.(4),[SIM] Inspect interior and exterior surfaces of the muzzle doors,Child,70,1.A,TORPEDO TUBES,140,No
+M70-1.A.5,1.A.(5),"[SIM] Inspect connections to the torpedo tubes, as applicable",Child,70,1.A,TORPEDO TUBES,150,No
+M70-1.A.5.a,1.A.(5)(a),[SIM] Blow/Vent connections,Child,70,1.A,TORPEDO TUBES,151,No
+M70-1.A.5.b,1.A.(5)(b),[SIM] Equalizing/Residual drain connections,Child,70,1.A,TORPEDO TUBES,152,No
+M70-1.A.5.c,1.A.(5)(c),[SIM] Flood/Drain line bottle connections,Child,70,1.A,TORPEDO TUBES,153,No
+M70-1.A.5.d,1.A.(5)(d),[SIM] Penetrations for weapon system cables,Child,70,1.A,TORPEDO TUBES,154,No
+M70-1.A.5.e,1.A.(5)(e),[SIM] Penetrations for Tomahawk systems,Child,70,1.A,TORPEDO TUBES,155,No
+M70-1.A.5.f,1.A.(5)(f),[SIM] Penetrations for Mk48 systems,Child,70,1.A,TORPEDO TUBES,156,No
+M70-1.A.5.g,1.A.(5)(g),[SIM] Penetration for breech door systems,Child,70,1.A,TORPEDO TUBES,157,No

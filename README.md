@@ -318,3 +318,14 @@ Inform NAVSEA (05U7), by letter or transmittal, of any major repairs planned as 
 Applicable hull and backup valves associated with listed components shall be inspected in accordance with criteria of URO MRC 008. Hull welds, hull inserts and/or liners, and torpedo tube lands and their associated non-ferrous welds shall be inspected in accordance with URO MRCs 001 and/or 003 as applicable. TDU and IAL muzzle valves do not require inspection. 
 
 The DRF calculation branch varies by DRFType A/B, not by MOD. 
+<img width="1624" height="1132" alt="image" src="https://github.com/user-attachments/assets/3afcad8c-d5ab-4e6d-8de8-fa74950396d5" />
+<img width="1286" height="676" alt="image" src="https://github.com/user-attachments/assets/1cad7048-c484-40a0-9bcc-fc9c197ba856" />
+<img width="1188" height="485" alt="image" src="https://github.com/user-attachments/assets/f6f82062-d71d-4971-bc79-64eeff16615f" />
+<img width="1186" height="625" alt="image" src="https://github.com/user-attachments/assets/730fd734-b036-40ca-bd3a-09282b078d8a" />
+<img width="1567" height="227" alt="image" src="https://github.com/user-attachments/assets/11d4e4dc-63dc-48c1-93c0-bde439fab77f" />
+
+
+
+LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Reference Image'.Full
+
+

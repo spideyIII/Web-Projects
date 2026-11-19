@@ -1269,6 +1269,8 @@ App:
       Set(varShakeBell, false);
       Set(varShakeTimestamp, Now());
       Set(varLastSeverity, "");
+      Set(varFlashColor, false);
+      Set(varLastNotificationChecked, Now());
 
 
       // -----------------------------------------------------------------------------

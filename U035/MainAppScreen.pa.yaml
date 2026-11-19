@@ -2730,3 +2730,113 @@ Screens:
                                           DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                           OnChange: |-
                                             =If(Self.Text <> Coalesce(nfU035Drf(_drfChildKey).Notes, ""), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {Notes: Self.Text}); MarkU035Dirty(_rowKey))
+      - cmpNotificationCenter_1:
+          Control: CanvasComponent
+          ComponentName: cmpNotificationCenter
+          ComponentLibraryUniqueName: impact_uroimpactcomponents_08912
+          Properties:
+            BellColor: =If(varFlashColor, Switch(varLastSeverity, "Error", thmU035.Danger, "Warning", thmU035.Warning, "Success", thmU035.SuccessText, "Info", thmU035.Primary, thmU035.Primary), thmU035.Primary)
+            BellX: =lblNotificationAnchor.X+16
+            BellY: =lblNotificationAnchor.Y+16
+            Height: =If(cmpNotificationCenter_1.IsOpen, App.Height, 45)
+            IsFlashing: =varFlashColor
+            NotificationTable: =colToasts
+            OnBellClick: =Set(varLastNotificationChecked, Now())
+            OnDismiss: =Remove(colToasts, ThisNotification)
+            PanelWidth: =350
+            ShowNotificationBell: =true
+            SortOrder: ="Descending"
+            Width: =If(cmpNotificationCenter_1.IsOpen, App.Width, 75)
+            X: =If(cmpNotificationCenter_1.IsOpen, 0, cmpNotificationCenter_1.BellX)
+            Y: =If(cmpNotificationCenter_1.IsOpen, 0, cmpNotificationCenter_1.BellY)
+      - cmpFeedback_1:
+          Control: CanvasComponent
+          ComponentName: cmpFeedback
+          ComponentLibraryUniqueName: impact_uroimpactcomponents_08912
+          Properties:
+            AppOrPageName: =App.StudioVersion
+            FeedbackX: =lblFeedbackAnchor.X+16
+            FeedbackY: =lblFeedbackAnchor.Y+16
+            Height: =If(cmpFeedback_1.IsOpen, App.Height, 45)
+            ImpactItemNumber: =nfRecordItem.'Impact Item Number'
+            ImpactItemSpecifics: |-
+              =$"URO: {nfUROMRC.'URO MRC Number'} MOD: {nfModNumber}"
+            OnSubmit: |-
+              =Set(
+                  varNewFeedbackRecord,
+                  Patch(
+                      'Impact Feedback Items',
+                      Defaults('Impact Feedback Items'),
+                      {
+                          Title: cmpFeedback_1.FeedbackRecord.Title,
+                          'Submission Type': LookUp(
+                              Choices('Impact Feedback Items'.'Submission Type'),
+                              Text(Value) = cmpFeedback_1.SelectedSubmissionTypeText
+                          ).Value,
+                          Priority: LookUp(
+                              Choices('Impact Feedback Items'.Priority),
+                              Text(Value) = cmpFeedback_1.SelectedPriorityText
+                          ).Value,
+                          Description: cmpFeedback_1.FeedbackRecord.Description,
+                          'Is User Impacted': cmpFeedback_1.FeedbackRecord.'User Impacted',
+                          'Needs Licensing Action': cmpFeedback_1.FeedbackRecord.'License Access Issue',
+                          'Impact Item Number': cmpFeedback_1.ImpactItemNumber,
+                          'App or Page Name': cmpFeedback_1.AppOrPageName,
+                          'Impact Item Specifics': cmpFeedback_1.ImpactItemSpecifics,
+                          'Screen Name': cmpFeedback_1.FeedbackRecord.'Screen Name'
+                      }
+                  )
+              );
+              nfSendToast(
+                  "Feedback submitted successfully",
+                  "Thank you!",
+                  3000,
+                  "Success"
+              )
+            PanelWidth: =350
+            PriorityChoices: =Choices('Impact Feedback Items'.Priority)
+            RelatedRecordID: ="Text"
+            ScreenName: =App.ActiveScreen.Name
+            ShowFeedback: =true
+            SubmissionTypeChoices: =Choices('Impact Feedback Items'.'Submission Type')
+            Width: =If(cmpFeedback_1.IsOpen, App.Width, 60)
+            X: =If(cmpFeedback_1.IsOpen, 0, cmpFeedback_1.FeedbackX)
+            Y: =If(cmpFeedback_1.IsOpen, 0, cmpFeedback_1.FeedbackY)
+      - tmrFlashBell_1:
+          Control: Timer@2.1.0
+          Properties:
+            AutoPause: =false
+            AutoStart: =varShakeBell
+            Duration: =500
+            Height: =25
+            OnTimerEnd: |-
+              =If(
+                  DateDiff(varShakeTimestamp, Now(), TimeUnit.Seconds) >= 10,
+                  Set(varShakeBell, false); Set(varFlashColor, false),
+                  Set(varFlashColor, !varFlashColor)
+              )
+            Repeat: =true
+            Visible: =false
+            Width: =25
+      - cmpLoadingSpinnerOverlay_1:
+          Control: CanvasComponent
+          ComponentName: cmpLoadingSpinnerOverlay
+          ComponentLibraryUniqueName: impact_uroimpactcomponents_08912
+          Properties:
+            Height: =App.Height
+            NewBlurBorder: =0
+            NewBorderRadius: =0
+            NewBoxShadowBlur: =0
+            NewBoxShadowHorizontalOffset: =0
+            NewBoxShadowRadius: =0
+            NewBoxShadowVerticalOffset: =0
+            NewFilterBlur: =3
+            NewSpinnerColor: =If(varU035ThemeMode = "Dark", "#7cb8f0", "#002f6c")
+            NewSpinnerGlassmorphism: =true
+            NewSpinnerSpeed: =2
+            NewSpinnerText: =If(varSpinner, varSpinnerText, _spinnertext)
+            ProgressBarValue: =100
+            ShowNewSpinner: =true
+            ShowProgressBar: =false
+            Visible: =varSpinner || _spinner
+            Width: =App.Width

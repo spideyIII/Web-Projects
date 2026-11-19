@@ -85,19 +85,7 @@ Screens:
               }
           );
           Clear(colChildResults);
-          ClearCollect(
-              colParentResults,
-              InitializeParentItems(nfRecordItem.'PK - URO Impact Item')
-          );
-          ClearCollect(
-              colChildResults,
-              InitializeChildItems(nfRecordItem.'PK - URO Impact Item')
-          );
-          NormalizeU035ChildRowIds();
-          ClearCollect(
-              colParentResultsBackup,
-              colParentResults
-          );
+          LoadU035Results();
           Set(
               _spinner,
               false
@@ -1301,14 +1289,10 @@ Screens:
                                                 Icon: ="Delete"
                                                 Layout: =ButtonLayout.IconOnly
                                                 OnSelect: |-
-                                                  =RemoveIf(
-                                                      colChildResults,
-                                                      ParentId = ThisItem.InspectionResultId
-                                                  );
-                                                  RemoveIf(
-                                                      colParentResults,
-                                                      InspectionResultId = ThisItem.InspectionResultId
-                                                  )
+                                                  =RemoveIf(colSubtaskDrf, ParentCode = ThisItem.OrderNumber);
+                                                  RemoveIf(colSubtaskResults, ParentCode = ThisItem.OrderNumber);
+                                                  RemoveIf(colParentResults, OrderNumber = ThisItem.OrderNumber);
+                                                  Set(varU035HasRemovals, true)
                                                 PaddingBottom: =5
                                                 PaddingLeft: =12
                                                 PaddingRight: =12
@@ -1488,6 +1472,7 @@ Screens:
                                 =RemoveIf(colSubtaskDrf, ParentCode = _rowKey);
                                 RemoveIf(colSubtaskResults, ParentCode = _rowKey);
                                 RemoveIf(colParentResults, OrderNumber = _rowKey);
+                                Set(varU035HasRemovals, true);
                                 UpdateContext({_rowModalOpen: false, _drfModalOpen: false, _rowKey: "", _subKey: "", _drfChildKey: ""})
                               Text: =""
                               Width: =36

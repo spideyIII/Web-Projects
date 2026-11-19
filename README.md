@@ -185,4 +185,80 @@ MOD selection changes which requirement set is loaded via nfModNumber.
 
 The DRF child schema and save logic do not vary by MOD in the current implementation. 
 
+____________________________________________________________________________________________________________________________________________________________________________________
+the PDFs support a text/topic-based filter that is more reliable than trying to force a table join. The stable match is not a hidden key between EGL and DRFs; it is the component/topic language repeated across the EGL and the DRF form titles, such as “torpedo tube,” “slide valve,” “breech door,” “muzzle door,” and similar equipment phrases. For a subtask like Torpedo Tubes, you can load all DRF titles in that mod containing “torpedo tube” and let the user pick. 
+ 
+
+What the PDFs show
+The EGL clearly repeats stable component names at the parent and subtask level:
+
+1.A. TORPEDO TUBES
+
+1.A.(1) Inspect interior and exterior surfaces of the torpedo tubes
+
+1.A.(2) ... slide valve
+
+1.A.(5) ... breech doors
+
+1.A.(6) ... muzzle doors 
+ 
+ 
+
+The DRF pages also use stable topic titles, for example:
+
+TORPEDO TUBE SLIDE VALVE DEFECTS
+
+TORPEDO TUBE DEFECTS (INCLUDING CONNECTIONS 1 INCH AND GREATER) 
+ 
+
+That means there is a defensible filter path:
+
+filter by Mod
+
+derive a search term from the EGL parent/subtask text
+
+filter DRF titles by that term
+
+Best match key to use
+The safest practical match key is a normalized topic keyword, not a row join.
+
+For example:
+
+TORPEDO TUBES parent → search DRF titles for "torpedo tube"
+
+slide valve subtask → search DRF titles for "slide valve"
+
+breech doors → search for "breech door"
+
+muzzle doors → search for "muzzle door"
+
+This is supported by the wording in the PDFs because the same equipment/component language appears in both the EGL and the DRF sections. 
+ 
+
+For your specific example
+If the selected subtask is under Torpedo Tubes, then yes — show all DRF titles for that mod containing “torpedo tube”.
+
+That is especially supported because the PDFs explicitly include DRF titles like:
+
+TORPEDO TUBE SLIDE VALVE DEFECTS
+
+TORPEDO TUBE DEFECTS (INCLUDING CONNECTIONS 1 INCH AND GREATER) 
+ 
+
+Recommended logic
+Use a small keyword map from the selected EGL row.
+
+Suggested priority
+If subtask text contains slide valve → filter DRFs by slide valve
+
+Else if contains breech door → filter by breech door
+
+Else if contains muzzle door → filter by muzzle door
+
+Else if contains flood and drain or connections → filter by torpedo tube
+
+Else if parent title contains torpedo tube → filter by torpedo tube
+
+Else fall back to all DRFs for the mod
+
 The DRF calculation branch varies by DRFType A/B, not by MOD. 

@@ -1346,8 +1346,10 @@ SaveU035Results(): Boolean =
                                     Remarks: a.Remarks,
                                     Signature: P.Signature
                                 }
-                            ),
-                            Collect(colU035SaveErrors, { Key: P.OrderNumber & "/" & S.ItemCode })
+                            );
+                            true,
+                            Collect(colU035SaveErrors, { Key: P.OrderNumber & "/" & S.ItemCode });
+                            false
                         )
                     )
                 )
@@ -1367,11 +1369,17 @@ SaveU035Results(): Boolean =
                                     'URO Impact Item'.'PK - URO Impact Item' = impactPk &&
                                     'Parent Code' = P.OrderNumber &&
                                     'Item Code' = S.ItemCode
-                                )
+                                ),
+                                resId: LookUp(
+                                    'U035 Inspection Results',
+                                    'URO Impact Item'.'PK - URO Impact Item' = impactPk &&
+                                    'Parent Code' = P.OrderNumber &&
+                                    'Item Code' = S.ItemCode
+                                ).'PK - U035 Inspection Result'
                             },
                             RemoveIf(
                                 'U035 Inspection DRF Results',
-                                'DRF Inspection'.'PK - U035 Inspection Result' = res.'PK - U035 Inspection Result'
+                                'DRF Inspection'.'PK - U035 Inspection Result' = resId
                             );
                             ForAll(
                                 Filter(
@@ -1398,8 +1406,10 @@ SaveU035Results(): Boolean =
                                             'Measurement Method': D.MeasurementMethod,
                                             Notes: D.Notes
                                         }
-                                    ),
-                                    Collect(colU035SaveErrors, { Key: "DRF " & P.OrderNumber & "/" & S.ItemCode })
+                                    );
+                                    true,
+                                    Collect(colU035SaveErrors, { Key: "DRF " & P.OrderNumber & "/" & S.ItemCode });
+                                    false
                                 )
                             )
                         )
@@ -1408,24 +1418,36 @@ SaveU035Results(): Boolean =
             );
 
             // 3. Tasks removed from the worklist: delete their rows (DRF rows first).
+            // The ids are staged in a collection first: RemoveIf cannot run on the same
+            // data source that a ForAll is iterating.
             If(
                 IsEmpty(colU035SaveErrors),
-                ForAll(
+                ClearCollect(
+                    colU035Orphans,
                     Filter(
+                        ForAll(
+                            Filter(
+                                'U035 Inspection Results',
+                                'URO Impact Item'.'PK - URO Impact Item' = impactPk
+                            ) As r,
+                            {
+                                ResultId: r.'PK - U035 Inspection Result',
+                                ParentCode: Coalesce(r.'Parent Code', "")
+                            }
+                        ),
+                        !IsBlank(ParentCode) &&
+                        IsBlank(LookUp(colParentResults, OrderNumber = ParentCode))
+                    )
+                );
+                ForAll(
+                    colU035Orphans As o,
+                    RemoveIf(
+                        'U035 Inspection DRF Results',
+                        'DRF Inspection'.'PK - U035 Inspection Result' = o.ResultId
+                    );
+                    RemoveIf(
                         'U035 Inspection Results',
-                        'URO Impact Item'.'PK - URO Impact Item' = impactPk
-                    ) As r,
-                    If(
-                        !IsBlank(r.'Parent Code') &&
-                        IsBlank(LookUp(colParentResults, OrderNumber = r.'Parent Code')),
-                        RemoveIf(
-                            'U035 Inspection DRF Results',
-                            'DRF Inspection'.'PK - U035 Inspection Result' = r.'PK - U035 Inspection Result'
-                        );
-                        RemoveIf(
-                            'U035 Inspection Results',
-                            'PK - U035 Inspection Result' = r.'PK - U035 Inspection Result'
-                        )
+                        'PK - U035 Inspection Result' = o.ResultId
                     )
                 )
             )

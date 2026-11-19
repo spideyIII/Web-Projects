@@ -200,6 +200,9 @@ Clear(colSubtaskResults);
 ClearCollect(colU035SaveErrors, { Key: "" });
 Clear(colU035SaveErrors);
 
+ClearCollect(colU035Orphans, { ResultId: GUID(), ParentCode: "" });
+Clear(colU035Orphans);
+
 ClearCollect(
     colSubtaskDrf,
     {

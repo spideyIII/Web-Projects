@@ -148,6 +148,7 @@ Screens:
                   - lblHeader:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: =nfHeader
                         AlignInContainer: =AlignInContainer.Center
                         AutoHeight: =true
                         Color: =thmU035.Heading
@@ -168,12 +169,14 @@ Screens:
                   - lblNotificationAnchor:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: ="Notification bell area"
                         AlignInContainer: =AlignInContainer.Stretch
                         Text: =""
                         Width: =75
                   - lblFeedbackAnchor:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: ="Feedback button area"
                         AlignInContainer: =AlignInContainer.Stretch
                         PaddingBottom: =0
                         PaddingLeft: =0
@@ -291,6 +294,17 @@ Screens:
                   - lblU035InlineNotice:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: |-
+                          =If(
+                              IsBlank(varInlineNoticeTitle),
+                              "",
+                              varInlineNoticeTitle &
+                              If(
+                                  !IsBlank(varInlineNoticeBody),
+                                  "    " & varInlineNoticeBody,
+                                  ""
+                              )
+                          )
                         Align: =Align.Right
                         AlignInContainer: =AlignInContainer.Center
                         Color: =Switch(varLastSeverity, "Error", thmU035.TextInverse, "Warning", thmU035.WarnText, "Success", thmU035.SuccessText, thmU035.TextBody)
@@ -326,6 +340,7 @@ Screens:
                   - tmrU035InlineNotice:
                       Control: Timer@2.1.0
                       Properties:
+                        AccessibleLabel: ="Notification auto-dismiss timer"
                         AutoStart: =true
                         Duration: =250
                         Height: =1
@@ -361,6 +376,7 @@ Screens:
                   - lblModBadge:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: ="MOD " & Text(nfModNumber)
                         Align: =Align.Center
                         AlignInContainer: =AlignInContainer.Center
                         Color: =thmU035.ChipText
@@ -382,6 +398,7 @@ Screens:
                   - lblActivityLabel:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: ="Worklist Rows " & Text(CountRows(colParentResults))
                         AlignInContainer: =AlignInContainer.Center
                         AutoHeight: =true
                         Color: =thmU035.TextMuted
@@ -519,6 +536,7 @@ Screens:
                         - lblListTitle:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="Inspection Worklist"
                               Color: =thmU035.Heading
                               FillPortions: =1
                               FontWeight: =FontWeight.Bold
@@ -547,6 +565,7 @@ Screens:
                         - lblEmptyTitle:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="No inspection worklist rows"
                               Align: =Align.Center
                               Color: =thmU035.Heading
                               FontWeight: =FontWeight.Bold
@@ -557,6 +576,7 @@ Screens:
                         - lblEmptyBody:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="Select one or more EGL tasks to generate the inspection worklist."
                               Align: =Align.Center
                               Color: =thmU035.TextMuted
                               Size: =13
@@ -646,6 +666,7 @@ Screens:
                                     - lblRowTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber, "EGL task")
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.Heading
                                           FillPortions: =1
@@ -661,6 +682,7 @@ Screens:
                                     - lblRowMeta:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =Coalesce(ThisItem.OrderNumber, "-") & "  ·  " & nfU035SubDoneCount(ThisItem.OrderNumber) & " of " & CountRows(nfU035EglSubtasks(ThisItem.OrderNumber)) & " subtasks complete"
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.TextMuted
                                           FillPortions: =1
@@ -670,6 +692,7 @@ Screens:
                               - lblRowStatusPill:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =nfU035ParentStatus(ThisItem.OrderNumber)
                                     Align: =Align.Center
                                     Color: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessText, "Complete", thmU035.ChipText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
                                     Fill: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessBg, "Complete", thmU035.InfoBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
@@ -729,6 +752,7 @@ Screens:
                   - lblFinalStatus:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: =nfU035FinalStatusText
                         AlignInContainer: =AlignInContainer.Center
                         Color: =If(nfU035Finalized, thmU035.SuccessText, thmU035.TextBody)
                         FillPortions: =1
@@ -796,6 +820,7 @@ Screens:
                         - lblWorklistPickerTitle:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="Select EGL Tasks"
                               AlignInContainer: =AlignInContainer.Center
                               Color: =thmU035.Heading
                               FillPortions: =1
@@ -839,6 +864,14 @@ Screens:
                   - lblWorklistPickerSubtitle:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: |-
+                          =CountRows(colParentResults) & " selected / " &
+                          CountRows(
+                              Filter(
+                                  nfU035SelectableEglParents,
+                                  IsBlank(LookUp(colParentResults, OrderNumber = ParentCode))
+                              )
+                          ) & " left"
                         Color: =thmU035.TextMuted
                         Height: =20
                         PaddingBottom: =0
@@ -1041,6 +1074,7 @@ Screens:
                         - lblWorklistPickSpacer:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="Spacer"
                               AlignInContainer: =AlignInContainer.Stretch
                               Color: =thmU035.TextMuted
                               FillPortions: =1
@@ -1135,6 +1169,7 @@ Screens:
                                     - lblWorklistPickerOptionCode:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =ThisItem.ParentCode
                                           Align: =Align.Center
                                           Color: =thmU035.ChipText
                                           Fill: =thmU035.ChipFill
@@ -1164,6 +1199,7 @@ Screens:
                                           - lblWorklistPickerOptionTitle:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.ParentTitle
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 AutoHeight: =true
                                                 Color: =thmU035.Heading
@@ -1176,6 +1212,7 @@ Screens:
                                           - lblWorklistPickerOptionMeta:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.ParentCode
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 Color: =thmU035.TextMuted
                                                 FillPortions: =1
@@ -1229,6 +1266,7 @@ Screens:
                               - lblWorklistSelectedTitle:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: ="Selected items"
                                     Color: =thmU035.Heading
                                     FontWeight: =FontWeight.Bold
                                     Size: =14
@@ -1236,6 +1274,7 @@ Screens:
                               - lblWorklistSelectedHint:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: ="Remove items here before closing if you selected the wrong task."
                                     AutoHeight: =true
                                     Color: =thmU035.TextMuted
                                     Size: =11
@@ -1287,6 +1326,7 @@ Screens:
                                                 - lblWorklistSelectedCode:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.OrderNumber
                                                       AlignInContainer: =AlignInContainer.Stretch
                                                       AutoHeight: =true
                                                       Color: =thmU035.Heading
@@ -1299,6 +1339,7 @@ Screens:
                                                 - lblWorklistSelectedTitle2:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.DRFInspection
                                                       AlignInContainer: =AlignInContainer.Stretch
                                                       AutoHeight: =true
                                                       Color: =thmU035.TextMuted
@@ -1350,6 +1391,7 @@ Screens:
                         - lblWorklistPickerFooterText:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: ="Only unselected EGL tasks are shown on the left."
                               Color: =thmU035.TextMuted
                               FillPortions: =1
                               Size: =11
@@ -1463,6 +1505,7 @@ Screens:
                               - lblCurrentTargetCode:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =_rowKey
                                     Align: =Align.Center
                                     Color: =thmU035.ChipText
                                     Fill: =thmU035.ChipFill
@@ -1491,6 +1534,7 @@ Screens:
                                     - lblCurrentTargetTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =nfU035Parent(_rowKey).DRFInspection
                                           AlignInContainer: =AlignInContainer.Stretch
                                           AutoHeight: =true
                                           Color: =thmU035.Text
@@ -1502,6 +1546,7 @@ Screens:
                                     - lblCurrentTargetSubtitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =$"{nfU035SubDoneCount(_rowKey)} of {CountRows(nfU035EglSubtasks(_rowKey))} subtasks complete"
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.TextMuted
                                           Height: =18
@@ -1587,6 +1632,7 @@ Screens:
                                     - lblRailTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: ="Subtasks"
                                           Color: =thmU035.Heading
                                           FontWeight: =FontWeight.Bold
                                           Height: =22
@@ -1640,6 +1686,7 @@ Screens:
                                                       - lblModalSubCode:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: =ThisItem.ItemCode
                                                             AlignInContainer: =AlignInContainer.Stretch
                                                             Color: =thmU035.Primary
                                                             FontWeight: =FontWeight.Bold
@@ -1649,6 +1696,7 @@ Screens:
                                                       - lblModalSubText:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: =ThisItem.ItemText
                                                             AlignInContainer: =AlignInContainer.Stretch
                                                             Color: =thmU035.Text
                                                             FillPortions: =1
@@ -1659,6 +1707,7 @@ Screens:
                                                 - lblModalSubStatus:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =nfU035SubStatusText(_rowKey, ThisItem.ItemCode)
                                                       Align: =Align.Center
                                                       Color: =Switch(nfU035SubStatusText(_rowKey, ThisItem.ItemCode), "Done", thmU035.SuccessText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
                                                       Fill: =Switch(nfU035SubStatusText(_rowKey, ThisItem.ItemCode), "Done", thmU035.SuccessBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
@@ -1705,6 +1754,7 @@ Screens:
                                     - lblSubPlaceholder:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: ="Select a subtask on the left to answer its screening questions."
                                           Align: =Align.Center
                                           Color: =thmU035.TextMuted
                                           Height: =80
@@ -1738,6 +1788,7 @@ Screens:
                                                 - lblSubFormCode:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =_subKey
                                                       Align: =Align.Center
                                                       Color: =thmU035.ChipText
                                                       Fill: =thmU035.ChipFill
@@ -1757,6 +1808,7 @@ Screens:
                                                 - lblSubFormText:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =LookUp(nfU035EglSubtasks(_rowKey), ItemCode = _subKey).ItemText
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.Heading
                                                       FillPortions: =1
@@ -1767,6 +1819,7 @@ Screens:
                                                 - lblSubFormStatus:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =nfU035SubStatusText(_rowKey, _subKey)
                                                       Align: =Align.Center
                                                       Color: =Switch(nfU035SubStatusText(_rowKey, _subKey), "Done", thmU035.SuccessText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
                                                       Fill: =Switch(nfU035SubStatusText(_rowKey, _subKey), "Done", thmU035.SuccessBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
@@ -1807,12 +1860,14 @@ Screens:
                                                       - lblDoi:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="Date of Inspection"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="Date of Inspection"
                                                       - txtSubDoi:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: ="Date of Inspection"
                                                             Default: =If(IsBlank(nfU035Sub(_rowKey, _subKey).DOI), "", Text(nfU035Sub(_rowKey, _subKey).DOI, "[$-en-US]mm/dd/yyyy"))
                                                             Height: =36
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -1831,12 +1886,14 @@ Screens:
                                                       - lblAsFound:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="As Found CAT"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="As Found CAT"
                                                       - txtSubAsFound:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: ="As Found CAT"
                                                             Default: =nfU035Sub(_rowKey, _subKey).AsFoundCAT
                                                             Height: =36
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -1854,12 +1911,14 @@ Screens:
                                                       - lblVisualDefects:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="Visual Defects"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="Visual Defects"
                                                       - txtSubVisualDefects:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: ="Visual Defects"
                                                             Default: =nfU035Sub(_rowKey, _subKey).VisualDefects
                                                             Height: =36
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -1877,6 +1936,7 @@ Screens:
                                                       - lblDrfRequired:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="DRF Required"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="DRF Required"
@@ -1892,6 +1952,8 @@ Screens:
                                                             - btnSubDrfYes:
                                                                 Control: ModernButton@1.0.0
                                                                 Properties:
+                                                                  AccessibleLabel: |-
+                                                                    ="DRF required: Yes"
                                                                   Appearance: =If(nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes", ButtonAppearance.Primary, ButtonAppearance.Secondary)
                                                                   DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                                   FontWeight: =""
@@ -1904,6 +1966,8 @@ Screens:
                                                             - btnSubDrfNo:
                                                                 Control: ModernButton@1.0.0
                                                                 Properties:
+                                                                  AccessibleLabel: |-
+                                                                    ="DRF required: No"
                                                                   Appearance: =If(!(nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes"), ButtonAppearance.Primary, ButtonAppearance.Secondary)
                                                                   DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                                   FontWeight: =""
@@ -1925,12 +1989,14 @@ Screens:
                                                       - lblFinalCat:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="Final CAT"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="Final CAT"
                                                       - txtSubFinalCat:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: ="Final CAT"
                                                             Default: =nfU035Sub(_rowKey, _subKey).FinalCAT
                                                             Height: =36
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -1959,12 +2025,14 @@ Screens:
                                                       - lblSubRemarks:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="Remarks"
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="Remarks"
                                                       - txtSubRemarks:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: ="Remarks"
                                                             Default: =nfU035Sub(_rowKey, _subKey).Remarks
                                                             Height: =60
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -1993,6 +2061,8 @@ Screens:
                                                 - lblSubDrfHint:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: |-
+                                                        =$"DRF required: {CountRows(Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey))} defect row(s) entered"
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.WarnText
                                                       FillPortions: =1
@@ -2069,6 +2139,7 @@ Screens:
                               - lblFooterProgress:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =$"{nfU035SubDoneCount(_rowKey)} of {CountRows(nfU035EglSubtasks(_rowKey))} subtasks complete"
                                     AlignInContainer: =AlignInContainer.Center
                                     Color: =thmU035.Heading
                                     FontWeight: =FontWeight.Semibold
@@ -2078,6 +2149,8 @@ Screens:
                               - lblFooterSignature:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: |-
+                                      =If(!nfInWorkingStatus, "Read-only: this Impact Item is no longer in Working status." & If(nfU035ParentSigned(_rowKey), "  Signed: " & nfU035Parent(_rowKey).Signature, ""), nfU035ParentSigned(_rowKey), "Signed: " & nfU035Parent(_rowKey).Signature, nfU035ParentComplete(_rowKey), "All subtasks complete. Signing as: " & nfIDPart1, "Complete every subtask to enable signing.")
                                     AlignInContainer: =AlignInContainer.Center
                                     Color: =thmU035.TextMuted
                                     FillPortions: =1
@@ -2183,6 +2256,7 @@ Screens:
                               - lblDrfCode:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =_rowKey & " / " & _subKey
                                     Align: =Align.Center
                                     Color: =thmU035.ChipText
                                     Fill: =thmU035.ChipFill
@@ -2211,6 +2285,7 @@ Screens:
                                     - lblDrfTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: ="DRF Details"
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.Heading
                                           FontWeight: =FontWeight.Bold
@@ -2220,6 +2295,7 @@ Screens:
                                     - lblDrfSubtitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =LookUp(nfU035EglSubtasks(_rowKey), ItemCode = _subKey).ItemText
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.TextMuted
                                           Height: =18
@@ -2304,6 +2380,7 @@ Screens:
                                                 - lblDrfRowTitle:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =Coalesce(ThisItem.DefectLocation, "New defect") & If(IsBlank(ThisItem.DrfType), "", "  ·  Type " & ThisItem.DrfType)
                                                       AlignInContainer: =AlignInContainer.Stretch
                                                       Color: =thmU035.Heading
                                                       FontWeight: =FontWeight.Bold
@@ -2313,6 +2390,7 @@ Screens:
                                                 - lblDrfRowMeta:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "Complete")
                                                       AlignInContainer: =AlignInContainer.Stretch
                                                       Height: =18
                                                       Size: =11
@@ -2358,6 +2436,7 @@ Screens:
                                           - lblDrfEditorTitle:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: ="Defect details"
                                                 Color: =thmU035.Heading
                                                 FillPortions: =1
                                                 FontWeight: =FontWeight.Bold
@@ -2415,6 +2494,7 @@ Screens:
                                                 - lblDrfPickerTitle:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="DRF Form"
                                                       Color: =thmU035.Heading
                                                       FontWeight: =FontWeight.Bold
                                                       Size: =12
@@ -2423,6 +2503,7 @@ Screens:
                                                 - lblDrfPickerSelected:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "Pick the DRF form for this defect row", nfU035Drf(_drfChildKey).DrfTitle & "  ·  Type " & nfU035Drf(_drfChildKey).DrfType)
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), thmU035.WarnText, thmU035.SuccessText)
                                                       FillPortions: =1
@@ -2445,6 +2526,8 @@ Screens:
                                           - lblDrfKeywordHint:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: |-
+                                                  =If(_drfShowAll || IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "Showing all DRF forms", $"Filtered by topic: {nfU035DrfKeyword(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} match(es)")
                                                 Color: =thmU035.TextMuted
                                                 Height: =18
                                                 Size: =11
@@ -2485,6 +2568,7 @@ Screens:
                                                       - lblDrfOptionTitle:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: =ThisItem.Title
                                                             AlignInContainer: =AlignInContainer.Center
                                                             Color: =thmU035.Text
                                                             FillPortions: =1
@@ -2494,6 +2578,7 @@ Screens:
                                                       - lblDrfOptionType:
                                                           Control: ModernText@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: ="Type " & ThisItem.DrfType
                                                             Align: =Align.Center
                                                             Color: =thmU035.ChipText
                                                             Fill: =thmU035.ChipFill
@@ -2548,12 +2633,14 @@ Screens:
                                                 - lblLocation:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Defect Location"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Defect Location"
                                                 - txtDrfLocation:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Defect Location"
                                                       Default: =nfU035Drf(_drfChildKey).DefectLocation
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2572,12 +2659,14 @@ Screens:
                                                 - lblDescription:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Defect Description (Length X Width)"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Defect Description (Length X Width)"
                                                 - txtDrfDescription:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Defect description, length by width"
                                                       Default: =nfU035Drf(_drfChildKey).DefectDescription
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2595,6 +2684,7 @@ Screens:
                                                 - lblFaceOnly:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Face Defect Only"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Face Defect Only"
@@ -2610,6 +2700,8 @@ Screens:
                                                       - btnDrfFaceYes:
                                                           Control: ModernButton@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: |-
+                                                              ="Face defect only: Yes"
                                                             Appearance: =If(nfU035Drf(_drfChildKey).FaceDefectOnly, ButtonAppearance.Primary, ButtonAppearance.Secondary)
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                             FontWeight: =""
@@ -2622,6 +2714,8 @@ Screens:
                                                       - btnDrfFaceNo:
                                                           Control: ModernButton@1.0.0
                                                           Properties:
+                                                            AccessibleLabel: |-
+                                                              ="Face defect only: No"
                                                             Appearance: =If(!(nfU035Drf(_drfChildKey).FaceDefectOnly), ButtonAppearance.Primary, ButtonAppearance.Secondary)
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                             FontWeight: =""
@@ -2643,12 +2737,14 @@ Screens:
                                                 - lblDepthB:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Depth (B)"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Depth (B)"
                                                 - txtDrfDepthB:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Depth B"
                                                       Default: =If(nfU035Drf(_drfChildKey).DepthB = 0, "", Text(nfU035Drf(_drfChildKey).DepthB))
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2666,12 +2762,14 @@ Screens:
                                                 - lblMinWallC:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Minimum Wall Thickness (C)"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Minimum Wall Thickness (C)"
                                                 - txtDrfMinWallC:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Minimum wall thickness C"
                                                       Default: =If(nfU035Drf(_drfChildKey).MinimumWallC = 0, "", Text(nfU035Drf(_drfChildKey).MinimumWallC))
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2689,6 +2787,7 @@ Screens:
                                                 - lblWallCalc:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
@@ -2707,6 +2806,7 @@ Screens:
                                                       - txtDrfWallCalc:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            AccessibleLabel: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType)
                                                             Default: =nfU035WallCalcDisplay(nfU035Drf(_drfChildKey).WallCalculation)
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                             FillPortions: =1
@@ -2739,12 +2839,14 @@ Screens:
                                                 - lblAdjWall:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Adjacent Unaffected Wall Thickness"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Adjacent Unaffected Wall Thickness"
                                                 - txtDrfAdjWall:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Adjacent unaffected wall thickness"
                                                       Default: =nfU035Drf(_drfChildKey).AdjacentWallThickness
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2763,12 +2865,14 @@ Screens:
                                                 - lblBelowMin:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Amount Below Dwg Min (Type B)"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Amount Below Dwg Min (Type B)"
                                                 - txtDrfBelowMin:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Amount below drawing minimum"
                                                       Default: =If(nfU035Drf(_drfChildKey).AmountBelowMin = 0, "", Text(nfU035Drf(_drfChildKey).AmountBelowMin))
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2786,12 +2890,14 @@ Screens:
                                                 - lblMeasMethod:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Measurement Method"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Measurement Method"
                                                 - txtDrfMeasMethod:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Measurement method"
                                                       Default: =nfU035Drf(_drfChildKey).MeasurementMethod
                                                       Height: =36
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2810,12 +2916,14 @@ Screens:
                                                 - lblDrfNotes:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="Notes"
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
                                                       Text: ="Notes"
                                                 - txtDrfDrfNotes:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      AccessibleLabel: ="Defect notes"
                                                       Default: =nfU035Drf(_drfChildKey).Notes
                                                       Height: =60
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
@@ -2880,6 +2988,7 @@ Screens:
                               - lblRefTitle:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =$"Reference  ·  MOD {nfModNumber}"
                                     AlignInContainer: =AlignInContainer.Center
                                     Color: =thmU035.Heading
                                     FillPortions: =1
@@ -2958,6 +3067,7 @@ Screens:
                               - lblRefGnTools:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =LookUp(nfU035GnTools, Mod = nfModNumber).Text
                                     AlignInContainer: =AlignInContainer.Stretch
                                     AutoHeight: =true
                                     Color: =thmU035.TextBody
@@ -2969,6 +3079,7 @@ Screens:
                               - lblRefGnEmpty:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =$"No general notes are loaded for MOD {nfModNumber}."
                                     Align: =Align.Center
                                     Color: =thmU035.TextMuted
                                     FillPortions: =0
@@ -3010,6 +3121,7 @@ Screens:
                                           - lblRefGnId:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.ID
                                                 Align: =Align.Center
                                                 Color: =thmU035.ChipText
                                                 Fill: =thmU035.ChipFill
@@ -3029,6 +3141,7 @@ Screens:
                                           - lblRefGnText:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.NoteText
                                                 Color: =thmU035.Text
                                                 FillPortions: =1
                                                 Height: =96
@@ -3100,6 +3213,7 @@ Screens:
                                                 - lblRefParentCode:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.ParentCode
                                                       Align: =Align.Center
                                                       Color: =thmU035.ChipText
                                                       Fill: =thmU035.ChipFill
@@ -3119,6 +3233,7 @@ Screens:
                                                 - lblRefParentTitle:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.ParentTitle
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.Heading
                                                       FillPortions: =1
@@ -3129,6 +3244,7 @@ Screens:
                                                 - lblRefParentInList:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: ="In worklist"
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.SuccessText
                                                       Size: =10
@@ -3174,6 +3290,7 @@ Screens:
                                           - lblRefDetailCode:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)
                                                 Align: =Align.Center
                                                 Color: =thmU035.ChipText
                                                 Fill: =thmU035.ChipFill
@@ -3193,6 +3310,7 @@ Screens:
                                           - lblRefDetailTitle:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =LookUp(nfU035SelectableEglParents, ParentCode = Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)).ParentTitle
                                                 AlignInContainer: =AlignInContainer.Center
                                                 Color: =thmU035.Heading
                                                 FillPortions: =1
@@ -3203,6 +3321,7 @@ Screens:
                                           - lblRefDetailCount:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =$"{CountRows(nfU035EglSubtasks(Coalesce(_refEglParent, First(nfU035SelectableEglParents).ParentCode)))} subtasks"
                                                 AlignInContainer: =AlignInContainer.Center
                                                 Color: =thmU035.TextMuted
                                                 Size: =12
@@ -3241,6 +3360,7 @@ Screens:
                                                 - lblRefSubCode:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.ItemCode
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.Primary
                                                       FontWeight: =FontWeight.Bold
@@ -3250,6 +3370,7 @@ Screens:
                                                 - lblRefSubText:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.ItemText
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.Text
                                                       FillPortions: =1
@@ -3259,6 +3380,7 @@ Screens:
                                                 - lblRefSubType:
                                                     Control: ModernText@1.0.0
                                                     Properties:
+                                                      AccessibleLabel: =ThisItem.ItemType
                                                       AlignInContainer: =AlignInContainer.Center
                                                       Color: =thmU035.TextMuted
                                                       Size: =11
@@ -3278,6 +3400,7 @@ Screens:
                               - lblRefImagesEmpty:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =$"No reference images are loaded for MOD {nfModNumber}."
                                     Align: =Align.Center
                                     Color: =thmU035.TextMuted
                                     FillPortions: =1
@@ -3327,6 +3450,7 @@ Screens:
                                           - lblRefImageLabel:
                                               Control: ModernText@1.0.0
                                               Properties:
+                                                AccessibleLabel: =Coalesce(ThisItem.'Display Label', ThisItem.'Reference Image Name')
                                                 AlignInContainer: =AlignInContainer.Center
                                                 Color: =thmU035.Heading
                                                 FillPortions: =1
@@ -3362,6 +3486,7 @@ Screens:
                                     - lblRefImageTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =Coalesce(LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Display Label', LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Reference Image Name')
                                           AlignInContainer: =AlignInContainer.Stretch
                                           Color: =thmU035.Heading
                                           FillPortions: =0
@@ -3372,6 +3497,7 @@ Screens:
                                     - lblRefImageDescription:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).Description
                                           AlignInContainer: =AlignInContainer.Stretch
                                           AutoHeight: =true
                                           Color: =thmU035.TextMuted
@@ -3446,6 +3572,7 @@ Screens:
                               - lblFinalReviewTitle:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: ="Final Review"
                                     AlignInContainer: =AlignInContainer.Center
                                     Color: =thmU035.Heading
                                     FillPortions: =1
@@ -3468,6 +3595,7 @@ Screens:
                         - lblFinalReviewSummary:
                             Control: ModernText@1.0.0
                             Properties:
+                              AccessibleLabel: =$"{CountRows(colParentResults)} task(s)  ·  {nfU035SubtasksDone} of {nfU035SubtasksTotal} subtasks complete  ·  {CountRows(colParentResults) - nfU035TasksUnsigned} of {CountRows(colParentResults)} task(s) signed"
                               Color: =thmU035.TextBody
                               FontWeight: =FontWeight.Semibold
                               Height: =24
@@ -3506,6 +3634,7 @@ Screens:
                                     - lblFinalTaskCode:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =ThisItem.OrderNumber
                                           Align: =Align.Center
                                           Color: =thmU035.ChipText
                                           Fill: =thmU035.ChipFill
@@ -3525,6 +3654,7 @@ Screens:
                                     - lblFinalTaskTitle:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber)
                                           AlignInContainer: =AlignInContainer.Center
                                           Color: =thmU035.Heading
                                           FillPortions: =1
@@ -3535,6 +3665,7 @@ Screens:
                                     - lblFinalTaskCount:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =$"{nfU035SubDoneCount(ThisItem.OrderNumber)} of {CountRows(nfU035EglSubtasks(ThisItem.OrderNumber))} subtasks"
                                           AlignInContainer: =AlignInContainer.Center
                                           Color: =thmU035.TextMuted
                                           Size: =11
@@ -3543,6 +3674,7 @@ Screens:
                                     - lblFinalTaskStatus:
                                         Control: ModernText@1.0.0
                                         Properties:
+                                          AccessibleLabel: =nfU035ParentStatus(ThisItem.OrderNumber)
                                           Align: =Align.Center
                                           Color: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessText, "Complete", thmU035.ChipText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
                                           Fill: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessBg, "Complete", thmU035.InfoBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
@@ -3585,6 +3717,7 @@ Screens:
                               - lblFinalReviewMessage:
                                   Control: ModernText@1.0.0
                                   Properties:
+                                    AccessibleLabel: =nfU035FinalStatusText
                                     AlignInContainer: =AlignInContainer.Center
                                     Color: =If(nfU035Finalized, thmU035.SuccessText, thmU035.TextMuted)
                                     FillPortions: =1
@@ -3656,6 +3789,7 @@ Screens:
                   - lblLeaveConfirmTitle:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: ="Unsaved changes"
                         Align: =Align.Center
                         AlignInContainer: =AlignInContainer.Stretch
                         Color: =thmU035.Heading
@@ -3666,6 +3800,11 @@ Screens:
                   - lblLeaveConfirmBody:
                       Control: ModernText@1.0.0
                       Properties:
+                        AccessibleLabel: |-
+                          =Coalesce(
+                              varConfirmMessage,
+                              "You have unsaved changes."
+                          ) & " Typed answers stay on screen until you leave, but they are only protected once saved. Save a draft before leaving the page?"
                         Align: =Align.Center
                         AlignInContainer: =AlignInContainer.Stretch
                         AutoHeight: =true
@@ -3844,6 +3983,7 @@ Screens:
       - tmrFlashBell_1:
           Control: Timer@2.1.0
           Properties:
+            AccessibleLabel: ="Notification bell flash timer"
             AutoPause: =false
             AutoStart: =varShakeBell
             Duration: =500

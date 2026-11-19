@@ -1362,13 +1362,15 @@ App:
       // 5B. SUBTASK ANSWER + SUBTASK DRF COLLECTION TYPE SEEDS
       // -----------------------------------------------------------------------------
 
+      // DOI is seeded with a real date (not Blank()) so the collection column is typed as Date;
+      // a Blank() seed leaves it untyped and Patch(..., {DOI: <date>}) then fails. Cleared right after.
       ClearCollect(
           colSubtaskResults,
           {
               ParentCode: "",
               ItemCode: "",
               ItemText: "",
-              DOI: Blank(),
+              DOI: Date(2000, 1, 1),
               AsFoundCAT: "",
               VisualDefects: "",
               DRFRequired: "",

@@ -85,9 +85,12 @@ App:
       // These support your in-app toast collection and bell-shake behavior.
       // ============================================================================
 
+      // Same shape and behavior as U008: Header/Body fields (what the notification-center
+      // component and the colToasts seed in App.OnStart expect), plus the inline notice
+      // variables that drive the strip under the header on the screen.
       tpToast := Type({
-          Title: Text,
-          Message: Text,
+          Header: Text,
+          Body: Text,
           Duration: Number,
           Severity: Text,
           ShowDismiss: Boolean,
@@ -98,24 +101,29 @@ App:
           ToastVisible: Boolean
       });
 
-      nfSendToast(Title: Text, Message: Text, Duration: Number, Severity: Text): Boolean =
+      // Returns true (not Void) because existing callers use it as the last value of
+      // Boolean functions, e.g. AddU035EglTaskToWorklist.
+      nfSendToast(Header: Text, Body: Text, Duration: Number, Severity: Text): Boolean =
       {
+          Set(varInlineNoticeTitle, Header);
+          Set(varInlineNoticeBody, Body);
+          Set(varInlineNoticeSeverity, Severity);
+          Set(
+              varInlineNoticeUntil,
+              DateAdd(Now(), Duration, TimeUnit.Milliseconds)
+          );
           Collect(
               colToasts,
               {
-                  Title: Title,
-                  Message: Message,
+                  Header: Header,
+                  Body: Body,
                   Duration: Duration,
                   Severity: Severity,
                   ShowDismiss: true,
                   ShowTime: true,
                   ShowProgress: false,
                   CurrentTime: Now(),
-                  RemoveTime: DateAdd(
-                      Now(),
-                      Duration,
-                      TimeUnit.Milliseconds
-                  ),
+                  RemoveTime: DateAdd(Now(), Duration, TimeUnit.Milliseconds),
                   ToastVisible: true
               }
           );

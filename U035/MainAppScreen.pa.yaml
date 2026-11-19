@@ -3510,7 +3510,7 @@ Screens:
                                           AccessibleLabel: =Coalesce(LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Display Label', "Reference image")
                                           AlignInContainer: =AlignInContainer.Stretch
                                           FillPortions: =1
-                                          Image: =LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Reference Image'
+                                          Image: =LookUp(colRefImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(colRefImages).'PK - Impact URO Reference Image'))).'Reference Image'.Full
                                           ImagePosition: =ImagePosition.Fit
       - ctrFinalReview:
           Control: GroupContainer@1.5.0

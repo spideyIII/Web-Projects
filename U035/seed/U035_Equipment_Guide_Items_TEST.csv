@@ -1,0 +1,9 @@
+Name,Mod Number,Parent Code,Parent Title,Item Code,Item Text,Item Type,Sort Key,IsSelectable
+[TEST] 1.A,70,1.A,[TEST] TORPEDO TUBES,1.A,[TEST] TORPEDO TUBES,Parent,0100,Yes
+[TEST] 1.A.(1),70,1.A,[TEST] TORPEDO TUBES,1.A.(1),[TEST] Inspect interior and exterior surfaces of the torpedo tubes,Subtask,0101,No
+[TEST] 1.A.(2),70,1.A,[TEST] TORPEDO TUBES,1.A.(2),[TEST] Inspect the slide valve,Subtask,0102,No
+[TEST] 1.A.(3),70,1.A,[TEST] TORPEDO TUBES,1.A.(3),[TEST] Inspect the breech doors,Subtask,0103,No
+[TEST] 1.A.(4),70,1.A,[TEST] TORPEDO TUBES,1.A.(4),[TEST] Inspect the muzzle doors,Subtask,0104,No
+[TEST] 1.B,70,1.B,[TEST] HULL VALVES,1.B,[TEST] HULL VALVES,Parent,0200,Yes
+[TEST] 1.B.(1),70,1.B,[TEST] HULL VALVES,1.B.(1),[TEST] Inspect the valve body,Subtask,0201,No
+[TEST] 1.B.(2),70,1.B,[TEST] HULL VALVES,1.B.(2),[TEST] Inspect the valve seat area,Subtask,0202,No

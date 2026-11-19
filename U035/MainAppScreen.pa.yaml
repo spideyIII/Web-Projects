@@ -38,7 +38,8 @@ Screens:
                   _refImageIndex: 1,
                   _drfRowKey: "",
                   _rowKey: "",
-                  _subKey: ""
+                  _subKey: "",
+                  _drfShowAll: false
               }
           );
           Collect(
@@ -1955,7 +1956,7 @@ Screens:
                                           Height: =36
                                           Icon: ="Edit"
                                           OnSelect: |-
-                                            =UpdateContext({_drfModalOpen: true, _drfChildKey: Coalesce(First(Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey)).DrfId, "")})
+                                            =UpdateContext({_drfModalOpen: true, _drfShowAll: false, _drfChildKey: Coalesce(First(Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey)).DrfId, "")})
                                           Text: ="DRF Details"
                                           Width: =150
                               - hctrSubNav:
@@ -2085,7 +2086,7 @@ Screens:
                   BorderThickness: =1
                   DropShadow: =DropShadow.ExtraBold
                   Fill: =thmU035.Surface
-                  Height: =Min(Parent.Height - 160, 700)
+                  Height: =Min(Parent.Height - 100, 780)
                   Width: =Min(Parent.Width - 160, 1100)
                   X: =(Parent.Width - Self.Width) / 2
                   Y: =(Parent.Height - Self.Height) / 2
@@ -2171,7 +2172,7 @@ Screens:
                         Height: =36
                         Icon: ="Add"
                         OnSelect: |-
-                          =With({newId: Text(GUID())}, Collect(colSubtaskDrf, {DrfId: newId, ParentCode: _rowKey, ItemCode: _subKey, DefectLocation: "", DefectDescription: "", FaceDefectOnly: false, DepthB: 0, MinimumWallC: 0, WallCalculation: 0, AdjacentWallThickness: "", AmountBelowMin: 0, MeasurementMethod: "", Notes: ""}); UpdateContext({_drfChildKey: newId}));
+                          =With({newId: Text(GUID()), opts: nfU035DrfOptions(_rowKey, _subKey, false)}, Collect(colSubtaskDrf, {DrfId: newId, ParentCode: _rowKey, ItemCode: _subKey, DrfTitle: If(CountRows(opts) = 1, First(opts).Title, ""), DrfType: If(CountRows(opts) = 1, First(opts).DrfType, ""), WallCalcManual: false, DefectLocation: "", DefectDescription: "", FaceDefectOnly: false, DepthB: 0, MinimumWallC: 0, WallCalculation: 0, AdjacentWallThickness: "", AmountBelowMin: 0, MeasurementMethod: "", Notes: ""}); UpdateContext({_drfChildKey: newId}));
                           MarkU035Dirty(_rowKey)
                         Text: ="Add defect row"
                         Width: =300
@@ -2218,7 +2219,7 @@ Screens:
                                     FontWeight: =FontWeight.Bold
                                     Height: =22
                                     Size: =12
-                                    Text: =Coalesce(ThisItem.DefectLocation, "New defect")
+                                    Text: =Coalesce(ThisItem.DefectLocation, "New defect") & If(IsBlank(ThisItem.DrfType), "", "  ·  Type " & ThisItem.DrfType)
                               - lblDrfRowMeta:
                                   Control: ModernText@1.0.0
                                   Properties:
@@ -2289,12 +2290,159 @@ Screens:
                                       MarkU035Dirty(_rowKey)
                                     Text: ="Delete row"
                                     Width: =130
+                        - vctrDrfFormPicker:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =thmU035.Border
+                              BorderThickness: =1
+                              Fill: =thmU035.SurfaceAlt
+                              FillPortions: =0
+                              Height: =176
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =176
+                              PaddingBottom: =6
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =6
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                            Children:
+                              - hctrDrfPickerHeader:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =34
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinHeight: =34
+                                  Children:
+                                    - lblDrfPickerTitle:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.Heading
+                                          FontWeight: =FontWeight.Bold
+                                          Size: =12
+                                          Text: ="DRF Form"
+                                          Width: =70
+                                    - lblDrfPickerSelected:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), thmU035.WarnText, thmU035.SuccessText)
+                                          FillPortions: =1
+                                          LayoutMinWidth: =1
+                                          FontWeight: =FontWeight.Semibold
+                                          Size: =12
+                                          Text: =If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "Pick the DRF form for this defect row", nfU035Drf(_drfChildKey).DrfTitle & "  ·  Type " & nfU035Drf(_drfChildKey).DrfType)
+                                    - btnDrfShowAll:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Toggle showing all DRF forms"
+                                          Appearance: =ButtonAppearance.Secondary
+                                          FontWeight: =""
+                                          Height: =30
+                                          Size: =11
+                                          OnSelect: |-
+                                            =UpdateContext({_drfShowAll: !_drfShowAll})
+                                          Text: =If(_drfShowAll, "Show matches only", "Show all DRF forms")
+                                          Width: =150
+                              - lblDrfKeywordHint:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Color: =thmU035.TextMuted
+                                    Height: =18
+                                    Size: =11
+                                    Text: |-
+                                      =If(_drfShowAll || IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "Showing all DRF forms", $"Filtered by topic: {nfU035DrfKeyword(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} match(es)")
+                              - galDrfFormOptions:
+                                  Control: Gallery@2.15.0
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: ="Available DRF forms"
+                                    BorderColor: =thmU035.Border
+                                    FillPortions: =1
+                                    Items: =nfU035DrfOptions(_rowKey, _subKey, _drfShowAll)
+                                    LayoutMinHeight: =1
+                                    TemplateSize: =36
+                                    TemplatePadding: =0
+                                    Width: =Parent.Width - 16
+                                  Children:
+                                    - ctrDrfOptionRow:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Fill: =If(ThisItem.Title = nfU035Drf(_drfChildKey).DrfTitle, thmU035.SelectedFill, thmU035.Surface)
+                                          Height: =32
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =8
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          RadiusBottomLeft: =4
+                                          RadiusBottomRight: =4
+                                          RadiusTopLeft: =4
+                                          RadiusTopRight: =4
+                                          Width: =Parent.TemplateWidth - 8
+                                          X: =4
+                                          Y: =2
+                                        Children:
+                                          - lblDrfOptionTitle:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Center
+                                                Color: =thmU035.Text
+                                                FillPortions: =1
+                                                LayoutMinWidth: =1
+                                                Size: =12
+                                                Text: =ThisItem.Title
+                                          - lblDrfOptionType:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                Align: =Align.Center
+                                                Color: =thmU035.ChipText
+                                                Fill: =thmU035.ChipFill
+                                                FontWeight: =FontWeight.Bold
+                                                Height: =22
+                                                PaddingBottom: =0
+                                                PaddingLeft: =8
+                                                PaddingRight: =8
+                                                PaddingTop: =0
+                                                RadiusBottomLeft: =11
+                                                RadiusBottomRight: =11
+                                                RadiusTopLeft: =11
+                                                RadiusTopRight: =11
+                                                Size: =11
+                                                Text: ="Type " & ThisItem.DrfType
+                                                Width: =70
+                                    - btnDrfOptionSelect:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =$"Use DRF form {ThisItem.Title}"
+                                          Appearance: =ButtonAppearance.Transparent
+                                          Color: =Color.Transparent
+                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                          FontWeight: =""
+                                          Height: =32
+                                          OnSelect: |-
+                                            =Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DrfTitle: ThisItem.Title, DrfType: ThisItem.DrfType, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(ThisItem.DrfType, nfU035Drf(_drfChildKey).DepthB, nfU035Drf(_drfChildKey).MinimumWallC))}); MarkU035Dirty(_rowKey)
+                                          Text: =""
+                                          Width: =Parent.TemplateWidth - 8
+                                          X: =4
+                                          Y: =2
                         - hctrDrfFields:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.None
-                              Height: =Parent.Height - 70
+                              FillPortions: =1
                               LayoutDirection: =LayoutDirection.Horizontal
                               LayoutGap: =12
                               LayoutMinHeight: =1
@@ -2417,7 +2565,7 @@ Screens:
                                           Height: =36
                                           DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                           OnChange: |-
-                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).DepthB, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DepthB: n}); MarkU035Dirty(_rowKey)))
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).DepthB, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DepthB: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, n, nfU035Drf(_drfChildKey).MinimumWallC))}); MarkU035Dirty(_rowKey)))
                               - vctrMinWallCField:
                                   Control: GroupContainer@1.5.0
                                   Variant: AutoLayout
@@ -2440,7 +2588,7 @@ Screens:
                                           Height: =36
                                           DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                           OnChange: |-
-                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).MinimumWallC, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MinimumWallC: n}); MarkU035Dirty(_rowKey)))
+                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).MinimumWallC, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MinimumWallC: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, nfU035Drf(_drfChildKey).DepthB, n))}); MarkU035Dirty(_rowKey)))
                               - vctrWallCalcField:
                                   Control: GroupContainer@1.5.0
                                   Variant: AutoLayout
@@ -2448,22 +2596,46 @@ Screens:
                                     Height: =56
                                     LayoutDirection: =LayoutDirection.Vertical
                                     LayoutGap: =4
-                                    LayoutMinWidth: =240
+                                    LayoutMinWidth: =300
                                   Children:
                                     - lblWallCalc:
                                         Control: ModernText@1.0.0
                                         Properties:
                                           Color: =thmU035.TextMuted
                                           Size: =11
-                                          Text: ="Wall Calculation"
-                                    - txtDrfWallCalc:
-                                        Control: ModernTextInput@1.1.2
+                                          Text: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
+                                    - hctrWallCalcRow:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
                                         Properties:
-                                          Default: =If(nfU035Drf(_drfChildKey).WallCalculation = 0, "", Text(nfU035Drf(_drfChildKey).WallCalculation))
+                                          DropShadow: =DropShadow.None
                                           Height: =36
-                                          DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
-                                          OnChange: |-
-                                            =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).WallCalculation, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: n}); MarkU035Dirty(_rowKey)))
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =8
+                                        Children:
+                                          - txtDrfWallCalc:
+                                              Control: ModernTextInput@1.1.2
+                                              Properties:
+                                                Default: =Text(Round(nfU035Drf(_drfChildKey).WallCalculation, 2))
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                FillPortions: =1
+                                                Height: =36
+                                                OnChange: |-
+                                                  =With({n: IfError(Value(Self.Text), 0)}, If(n <> Round(nfU035Drf(_drfChildKey).WallCalculation, 2), Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: n, WallCalcManual: true}); MarkU035Dirty(_rowKey)))
+                                          - btnDrfWallCalcReset:
+                                              Control: ModernButton@1.0.0
+                                              Properties:
+                                                AccessibleLabel: ="Reset Wall Calculation to calculated value"
+                                                Appearance: =ButtonAppearance.Secondary
+                                                DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                FontWeight: =""
+                                                Height: =36
+                                                Icon: ="ArrowReset"
+                                                OnSelect: |-
+                                                  =Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, nfU035Drf(_drfChildKey).DepthB, nfU035Drf(_drfChildKey).MinimumWallC), WallCalcManual: false}); MarkU035Dirty(_rowKey)
+                                                Text: ="Reset"
+                                                Visible: =nfU035Drf(_drfChildKey).WallCalcManual
+                                                Width: =90
                               - vctrAdjWallField:
                                   Control: GroupContainer@1.5.0
                                   Variant: AutoLayout
@@ -2495,13 +2667,14 @@ Screens:
                                     LayoutDirection: =LayoutDirection.Vertical
                                     LayoutGap: =4
                                     LayoutMinWidth: =240
+                                    Visible: =nfU035Drf(_drfChildKey).DrfType = "B"
                                   Children:
                                     - lblBelowMin:
                                         Control: ModernText@1.0.0
                                         Properties:
                                           Color: =thmU035.TextMuted
                                           Size: =11
-                                          Text: ="Amount Below Dwg Min"
+                                          Text: ="Amount Below Dwg Min (Type B)"
                                     - txtDrfBelowMin:
                                         Control: ModernTextInput@1.1.2
                                         Properties:

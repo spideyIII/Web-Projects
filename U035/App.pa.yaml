@@ -831,6 +831,9 @@ App:
           DrfId: Text,
           ParentCode: Text,
           ItemCode: Text,
+          DrfTitle: Text,
+          DrfType: Text,
+          WallCalcManual: Boolean,
           DefectLocation: Text,
           DefectDescription: Text,
           FaceDefectOnly: Boolean,
@@ -905,6 +908,7 @@ App:
           { r: nfU035Drf(drfId) },
           CountIf(
               Table(
+                  { Needed: IsBlank(r.DrfTitle) },
                   { Needed: IsBlank(r.DefectLocation) },
                   { Needed: IsBlank(r.DefectDescription) },
                   { Needed: IsBlank(r.MeasurementMethod) },
@@ -1018,6 +1022,83 @@ App:
 
 
       // ============================================================================
+      // 15B. DRF FORM PICKER + WALL CALCULATION (per README requirements)
+      // The DRF Type (A or B) comes from the DRF form the inspector picks for a
+      // defect row, not from the parent task and not from the MOD.
+      // ============================================================================
+
+      U035DrfCatalogRecordType := Type({
+          Title: Text,
+          DrfType: Text
+      });
+      U035DrfCatalogTableType := Type([U035DrfCatalogRecordType]);
+
+      // All DRF forms and their types.
+      // TODO: add the MOD filter once the MOD column name on this table is confirmed,
+      // e.g. Filter('U035 Inspection Requirements', <MOD column> = nfModNumber).
+      nfU035DrfCatalog = ForAll(
+          'U035 Inspection Requirements',
+          {
+              Title: ThisRecord.'UROMODDRF Title',
+              DrfType: ThisRecord.'DRF Type'
+          }
+      );
+
+      // Topic keyword rules, checked in this order: Subtask rules first, then Parent rules.
+      // Add a row here to teach the picker a new equipment phrase.
+      nfU035DrfKeywordRules = Table(
+          { Level: "Subtask", Phrase: "slide valve", Keyword: "slide valve" },
+          { Level: "Subtask", Phrase: "breech door", Keyword: "breech door" },
+          { Level: "Subtask", Phrase: "muzzle door", Keyword: "muzzle door" },
+          { Level: "Subtask", Phrase: "flood and drain", Keyword: "torpedo tube" },
+          { Level: "Subtask", Phrase: "connections", Keyword: "torpedo tube" },
+          { Level: "Parent", Phrase: "torpedo tube", Keyword: "torpedo tube" }
+      );
+
+      // Blank result = no rule matched, so the picker falls back to every DRF form.
+      nfU035DrfKeyword(parentCode: Text, itemCode: Text): Text =
+      With(
+          {
+              sub: Lower(Coalesce(LookUp(nfU035EglSubtasks(parentCode), ItemCode = itemCode).ItemText, "")),
+              par: Lower(Coalesce(nfU035Parent(parentCode).DRFInspection, ""))
+          },
+          Coalesce(
+              First(Filter(nfU035DrfKeywordRules, Level = "Subtask" && Phrase in sub)).Keyword,
+              First(Filter(nfU035DrfKeywordRules, Level = "Parent" && Phrase in par)).Keyword,
+              ""
+          )
+      );
+
+      nfU035DrfOptions(parentCode: Text, itemCode: Text, showAll: Boolean): U035DrfCatalogTableType =
+      With(
+          { kw: nfU035DrfKeyword(parentCode, itemCode) },
+          SortByColumns(
+              Filter(
+                  nfU035DrfCatalog,
+                  showAll || IsBlank(kw) || kw in Lower(Title)
+              ),
+              "Title",
+              SortOrder.Ascending
+          )
+      );
+
+      // Type A = % wall reduction, Type B = actual wall remaining. Blank type = 0.
+      nfU035DrfCalc(drfType: Text, b: Number, c: Number): Number =
+      If(
+          drfType = "A", If(c <> 0, (b / c) * 100, 0),
+          drfType = "B", c - b,
+          0
+      );
+
+      nfU035DrfCalcLabel(drfType: Text): Text =
+      If(
+          drfType = "A", "% Wall Reduction B/C X 100",
+          drfType = "B", "Actual Wall Remaining 'A' ('C'-'B')",
+          "Wall Calculation"
+      );
+
+
+      // ============================================================================
       // 16. JSON OBJECT FOR THE ENTIRE RESULT SET
       // Parent task -> Subtasks (screening answers) -> DrfRows (only when
       // DRFRequired = "Yes"). Call it when you need the string, e.g.
@@ -1050,11 +1131,29 @@ App:
                               FinalCAT: S.FinalCAT,
                               Remarks: S.Remarks,
                               Complete: nfU035SubComplete(S.ParentCode, S.ItemCode),
-                              DrfRows: Filter(
-                                  colSubtaskDrf,
-                                  S.DRFRequired = "Yes" &&
-                                  ParentCode = S.ParentCode &&
-                                  ItemCode = S.ItemCode
+                              DrfRows: ForAll(
+                                  Filter(
+                                      colSubtaskDrf,
+                                      S.DRFRequired = "Yes" &&
+                                      ParentCode = S.ParentCode &&
+                                      ItemCode = S.ItemCode
+                                  ) As D,
+                                  {
+                                      DrfId: D.DrfId,
+                                      DrfTitle: D.DrfTitle,
+                                      DrfType: D.DrfType,
+                                      DefectLocation: D.DefectLocation,
+                                      DefectDescription: D.DefectDescription,
+                                      FaceDefectOnly: D.FaceDefectOnly,
+                                      DepthB: D.DepthB,
+                                      MinimumWallC: D.MinimumWallC,
+                                      WallCalculation: D.WallCalculation,
+                                      WallCalcManual: D.WallCalcManual,
+                                      AdjacentWallThickness: D.AdjacentWallThickness,
+                                      AmountBelowMin: If(D.DrfType = "B", D.AmountBelowMin, Blank()),
+                                      MeasurementMethod: D.MeasurementMethod,
+                                      Notes: D.Notes
+                                  }
                               )
                           }
                       )
@@ -1263,6 +1362,9 @@ App:
               DrfId: "",
               ParentCode: "",
               ItemCode: "",
+              DrfTitle: "",
+              DrfType: "",
+              WallCalcManual: false,
               DefectLocation: "",
               DefectDescription: "",
               FaceDefectOnly: false,

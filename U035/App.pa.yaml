@@ -1038,11 +1038,14 @@ App:
       // The Filter is a plain column = value comparison so Dataverse evaluates it
       // server-side (delegable). Do not wrap the column in IfError / Value / Text here:
       // that makes the Filter non-delegable and brings back the delegation warning.
-      // If Mod is a TEXT column, change the right side to Text(nfModNumber).
+      // Mod is a TEXT column, so it is compared to text. Both spellings are accepted
+      // ("1" and "01"; 70 and 80 are the same either way). Plain = comparisons joined by ||
+      // stay delegable. If the table only ever uses one spelling you can drop the other.
       nfU035DrfCatalog = ForAll(
           Filter(
               'U035 Impact Requirements',
-              ThisRecord.Mod = nfModNumber
+              ThisRecord.Mod = Text(nfModNumber) ||
+              ThisRecord.Mod = Text(nfModNumber, "00")
           ),
           {
               Title: ThisRecord.'UROMODDRF Title',

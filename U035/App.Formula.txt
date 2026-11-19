@@ -51,7 +51,47 @@ nfUROMRC = nfRecordItem.'URO MRC';
 nfHeader = $"{nfRecordItem.'Impact Item Number'} : USS {nfShip.'Ship Name'} ({nfShip.'Ship Symbol'} {nfShip.'Ship Number'}) {nfAvailability.'Availability Name'} URO/MRC: {nfUROMRC.'URO MRC Number'} {If(User().Email = "derek.r.miles4.civ@us.navy.mil", "   " & visibleTrigger, "")} M{nfModNumber}";
 
 // Used by the signature/helper flow already present in your app.
-nfIDPart1 = varID;
+// Signature resolver (same as U008): NAME.BADGE, e.g. SMITH.JOHN.1234567890
+nfIDPart1 = With(
+    {
+        normalized: Upper(
+            Substitute(
+                Substitute(
+                    varU035SignerDisplayName,
+                    ", ",
+                    "."
+                ),
+                " ",
+                "."
+            )
+        ),
+        suffix: If(
+            IsBlank(varID),
+            "",
+            "." & varID
+        )
+    },
+    If(
+        !IsBlank(
+            Find(
+                "CIV",
+                normalized
+            )
+        ),
+        First(
+            Split(
+                normalized,
+                "CIV"
+            )
+        ).Value & suffix,
+        First(
+            Split(
+                normalized,
+                "CTR"
+            )
+        ).Value & suffix
+    )
+);
 
 
 // ============================================================================

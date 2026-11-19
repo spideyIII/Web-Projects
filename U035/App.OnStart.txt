@@ -114,30 +114,6 @@ Clear(colParentResultsBackup);
 
 
 // -----------------------------------------------------------------------------
-// 4. DRF CHILD RESULT COLLECTION TYPE SEED
-// -----------------------------------------------------------------------------
-
-ClearCollect(
-    colChildResults,
-    {
-        InspectionDRFResultId: Blank(),
-        ParentId: Blank(),
-        DefectLocation: "",
-        DefectDescription: "",
-        FaceDefectOnly: false,
-        DepthB: 0,
-        MinimumWallC: 0,
-        WallCalculation: 0,
-        AdjacentWallThickness: "",
-        AmountBelowMin: 0,
-        MeasurementMethod: "",
-        Notes: ""
-    }
-);
-Clear(colChildResults);
-
-
-// -----------------------------------------------------------------------------
 // 5. LEGACY / TRANSITION COLLECTIONS STILL USED IN CURRENT YAML
 // -----------------------------------------------------------------------------
 

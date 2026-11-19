@@ -67,24 +67,6 @@ Screens:
               }
           );
           Clear(colParentResults);
-          Collect(
-              colChildResults,
-              {
-                  InspectionDRFResultId: Blank(),
-                  ParentId: Blank(),
-                  DefectLocation: "",
-                  DefectDescription: "",
-                  FaceDefectOnly: false,
-                  DepthB: 0,
-                  MinimumWallC: 0,
-                  WallCalculation: 0,
-                  AdjacentWallThickness: "",
-                  AmountBelowMin: 0,
-                  MeasurementMethod: "",
-                  Notes: ""
-              }
-          );
-          Clear(colChildResults);
           LoadU035Results();
           Set(
               _spinner,

@@ -40,6 +40,7 @@ Screens:
                   _rowKey: "",
                   _subKey: "",
                   _refEglParent: "",
+                  _finalReviewOpen: false,
                   _refImageKey: "",
                   _refSearch: "",
                   _drfShowAll: false
@@ -442,7 +443,7 @@ Screens:
                         BasePaletteColor: =thmU035.Primary
                         DisplayMode: |-
                           =If(
-                              nfInWorkingStatus && !nfU035AllRowsSigned(),
+                              nfInWorkingStatus && HasDirtyChanges,
                               DisplayMode.Edit,
                               DisplayMode.Disabled
                           )
@@ -706,6 +707,48 @@ Screens:
                               Text: =""
                               VerticalAlign: =VerticalAlign.Middle
                               Width: =Parent.TemplateWidth - 10
+            - hctrFinalActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =thmU035.Surface
+                  FillPortions: =0
+                  Height: =52
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =52
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - lblFinalStatus:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        Color: =If(nfU035Finalized, thmU035.SuccessText, thmU035.TextBody)
+                        FillPortions: =1
+                        FontWeight: =FontWeight.Semibold
+                        LayoutMinWidth: =1
+                        Size: =12
+                        Text: =nfU035FinalStatusText
+                  - btnFinalReview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Open the final review"
+                        BasePaletteColor: =thmU035.Primary
+                        DisplayMode: =If(CountRows(colParentResults) > 0, DisplayMode.Edit, DisplayMode.Disabled)
+                        FontWeight: =""
+                        Height: =36
+                        Icon: ="DocumentCheckmark"
+                        OnSelect: |-
+                          =UpdateContext({_finalReviewOpen: true})
+                        Text: ="Final Review"
+                        Width: =160
       - ctrWorklistPicker:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
@@ -2021,7 +2064,15 @@ Screens:
                               LayoutMinWidth: =1
                               Size: =12
                               Text: |-
-                                =If(nfU035ParentSigned(_rowKey), "Signed: " & nfU035Parent(_rowKey).Signature, If(nfU035ParentComplete(_rowKey), "All subtasks complete. Ready to sign.", "Complete every subtask to enable signing."))
+                                =If(
+                                    !nfInWorkingStatus,
+                                    "Read-only: this Impact Item is no longer in Working status." & If(nfU035ParentSigned(_rowKey), "  Signed: " & nfU035Parent(_rowKey).Signature, ""),
+                                    nfU035ParentSigned(_rowKey),
+                                    "Signed: " & nfU035Parent(_rowKey).Signature,
+                                    nfU035ParentComplete(_rowKey),
+                                    "All subtasks complete. Ready to sign.",
+                                    "Complete every subtask to enable signing."
+                                )
                         - btnFooterSign:
                             Control: ModernButton@1.0.0
                             Properties:
@@ -3280,6 +3331,236 @@ Screens:
                                                 Size: =11
                                                 Text: =ThisItem.ItemType
                                                 Width: =90
+      - ctrFinalReview:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =thmU035.Overlay
+            Height: =Parent.Height
+            Visible: =_finalReviewOpen
+            Width: =Parent.Width
+          Children:
+            - vctrFinalReviewCard:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =thmU035.Border
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.ExtraBold
+                  Fill: =thmU035.Surface
+                  Height: =Min(Parent.Height - 96, 680)
+                  Width: =Min(Parent.Width - 96, 960)
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =(Parent.Height - Self.Height) / 2
+                Children:
+                  - hctrFinalReviewHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =12
+                      Children:
+                        - lblFinalReviewTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =thmU035.Heading
+                              FillPortions: =1
+                              FontWeight: =FontWeight.Bold
+                              Size: =18
+                              Text: ="Final Review"
+                        - btnFinalReviewClose:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close final review"
+                              Appearance: =ButtonAppearance.Subtle
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Dismiss"
+                              Layout: =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                =UpdateContext({_finalReviewOpen: false})
+                              Text: =""
+                              Width: =36
+                  - lblFinalReviewSummary:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        Color: =thmU035.TextBody
+                        FontWeight: =FontWeight.Semibold
+                        Height: =24
+                        Size: =13
+                        Text: =$"{CountRows(colParentResults)} task(s)  ·  {nfU035SubtasksDone} of {nfU035SubtasksTotal} subtasks complete  ·  {CountRows(colParentResults) - nfU035TasksUnsigned} of {CountRows(colParentResults)} task(s) signed"
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =66
+                  - galFinalTasks:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Task readiness"
+                        BorderColor: =thmU035.Border
+                        Height: =Parent.Height - 200
+                        Items: =SortByColumns(colParentResults, "OrderNumber", SortOrder.Ascending)
+                        TemplateSize: =64
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =98
+                      Children:
+                        - ctrFinalTaskRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.Semilight
+                              Fill: =thmU035.SurfaceAlt
+                              Height: =56
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Width: =Parent.TemplateWidth - 8
+                              X: =4
+                              Y: =4
+                            Children:
+                              - lblFinalTaskCode:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =thmU035.ChipText
+                                    Fill: =thmU035.ChipFill
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =28
+                                    PaddingBottom: =0
+                                    PaddingLeft: =8
+                                    PaddingRight: =8
+                                    PaddingTop: =0
+                                    RadiusBottomLeft: =5
+                                    RadiusBottomRight: =5
+                                    RadiusTopLeft: =5
+                                    RadiusTopRight: =5
+                                    Size: =12
+                                    Text: =ThisItem.OrderNumber
+                                    Width: =80
+                              - lblFinalTaskTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    Color: =thmU035.Heading
+                                    FillPortions: =1
+                                    FontWeight: =FontWeight.Semibold
+                                    LayoutMinWidth: =1
+                                    Size: =12
+                                    Text: =Coalesce(ThisItem.DRFInspection, ThisItem.OrderNumber)
+                              - lblFinalTaskCount:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    Color: =thmU035.TextMuted
+                                    Size: =11
+                                    Text: =$"{nfU035SubDoneCount(ThisItem.OrderNumber)} of {CountRows(nfU035EglSubtasks(ThisItem.OrderNumber))} subtasks"
+                                    Width: =110
+                              - lblFinalTaskStatus:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessText, "Complete", thmU035.ChipText, "In Progress", thmU035.WarnText, thmU035.TextMuted)
+                                    Fill: =Switch(nfU035ParentStatus(ThisItem.OrderNumber), "Signed", thmU035.SuccessBg, "Complete", thmU035.InfoBg, "In Progress", thmU035.WarnBg, thmU035.SurfaceSubtle)
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =26
+                                    PaddingBottom: =0
+                                    PaddingLeft: =8
+                                    PaddingRight: =8
+                                    PaddingTop: =0
+                                    RadiusBottomLeft: =13
+                                    RadiusBottomRight: =13
+                                    RadiusTopLeft: =13
+                                    RadiusTopRight: =13
+                                    Size: =11
+                                    Text: =nfU035ParentStatus(ThisItem.OrderNumber)
+                                    Width: =100
+                              - btnFinalTaskOpen:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =$"Open task {ThisItem.OrderNumber}"
+                                    Appearance: =ButtonAppearance.Secondary
+                                    FontWeight: =""
+                                    Height: =32
+                                    OnSelect: |-
+                                      =With({first: First(nfU035EglSubtasks(ThisItem.OrderNumber)).ItemCode}, EnsureU035Sub(ThisItem.OrderNumber, first); UpdateContext({_finalReviewOpen: false, _rowKey: ThisItem.OrderNumber, _subKey: first, _rowModalOpen: true, _drfModalOpen: false, _drfChildKey: ""}))
+                                    Text: ="Open"
+                                    Width: =80
+                  - hctrFinalReviewFooter:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        Width: =Parent.Width - 24
+                        X: =12
+                        Y: =Parent.Height - 56
+                      Children:
+                        - lblFinalReviewMessage:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              Color: =If(nfU035Finalized, thmU035.SuccessText, thmU035.TextMuted)
+                              FillPortions: =1
+                              LayoutMinWidth: =1
+                              Size: =12
+                              Text: =nfU035FinalStatusText
+                        - btnFinalSave:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Save and finalize the inspection"
+                              BasePaletteColor: =thmU035.Primary
+                              DisplayMode: =If(nfInWorkingStatus && nfU035ReadyToFinalize && HasDirtyChanges, DisplayMode.Edit, DisplayMode.Disabled)
+                              FontWeight: =""
+                              Height: =36
+                              Icon: ="Save"
+                              OnSelect: |-
+                                =If(
+                                    SaveAndRepopulateU035(),
+                                    UpdateContext({_finalReviewOpen: false});
+                                    nfSendToast(
+                                        "Inspection finalized",
+                                        "All tasks are signed and saved.",
+                                        4000,
+                                        "Success"
+                                    ),
+                                    nfSendToast(
+                                        "Save failed",
+                                        "The inspection was not finalized. Your answers were kept.",
+                                        6000,
+                                        "Error"
+                                    )
+                                )
+                              Text: ="Save & Finalize"
+                              Width: =160
+                        - btnFinalReviewDone:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Close final review"
+                              Appearance: =ButtonAppearance.Secondary
+                              FontWeight: =""
+                              Height: =36
+                              OnSelect: |-
+                                =UpdateContext({_finalReviewOpen: false})
+                              Text: ="Close"
+                              Width: =100
       - ctrLeaveConfirm:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout

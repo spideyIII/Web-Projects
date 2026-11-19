@@ -1211,3 +1211,49 @@ nfU035GnNotes = Table(
     { Mod: 80, ID: 3, NoteText: "Inform NAVSEA (05U7), by letter or transmittal, of any major repairs planned as a result of conducting inspections. Major repairs include structural effects to pressure-containing portions through welding, brazing, or similar fabrication, and installation of new pressure-boundary parts/components not previously strength tested." },
     { Mod: 80, ID: 4, NoteText: "Applicable hull and backup valves associated with listed components shall be inspected in accordance with criteria of URO MRC 008. Hull welds, hull inserts and/or liners, and torpedo tube lands and their associated non-ferrous welds shall be inspected in accordance with URO MRCs 001 and/or 003 as applicable. TDU and IAL muzzle valves do not require inspection." }
 );
+
+// ============================================================================
+// 19. FINAL REVIEW / READ-ONLY (derived from signatures; nothing extra is stored)
+// A task is signed when every one of its rows carries a signature. The inspection is
+// "finalized" when every task is complete and signed AND saved (no unsaved changes).
+// Editing, signing and removing a signature all require nfInWorkingStatus (the Impact
+// Item's Owning Team Code is OWN-WORKING). When it is false, everything is read-only.
+// ============================================================================
+
+nfU035TasksIncomplete = CountRows(
+    Filter(colParentResults, !nfU035ParentComplete(OrderNumber))
+);
+
+nfU035TasksUnsigned = CountRows(
+    Filter(colParentResults, !nfU035ParentSigned(OrderNumber))
+);
+
+nfU035SubtasksTotal = Sum(
+    colParentResults,
+    CountRows(nfU035EglSubtasks(OrderNumber))
+);
+
+nfU035SubtasksDone = Sum(
+    colParentResults,
+    nfU035SubDoneCount(OrderNumber)
+);
+
+nfU035ReadyToFinalize = CountRows(colParentResults) > 0 &&
+    nfU035TasksIncomplete = 0 &&
+    nfU035TasksUnsigned = 0;
+
+nfU035Finalized = nfU035ReadyToFinalize && !HasDirtyChanges;
+
+nfU035FinalStatusText = If(
+    !nfInWorkingStatus,
+    "Read-only: this Impact Item is no longer in Working status.",
+    CountRows(colParentResults) = 0,
+    "Add EGL tasks to the worklist to begin.",
+    nfU035TasksIncomplete > 0,
+    $"{nfU035TasksIncomplete} task(s) still have incomplete subtasks.",
+    nfU035TasksUnsigned > 0,
+    $"{nfU035TasksUnsigned} task(s) are complete and waiting for a signature.",
+    HasDirtyChanges,
+    "All tasks are signed. Save to finalize.",
+    "Inspection complete: all tasks are signed and saved."
+);

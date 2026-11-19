@@ -2996,8 +2996,6 @@ Screens:
                                           LayoutDirection: =LayoutDirection.Horizontal
                                           LayoutGap: =12
                                           PaddingBottom: =8
-                                          PaddingLeft: =8
-                                          PaddingRight: =8
                                           PaddingTop: =8
                                           PaddingLeft: =12
                                           PaddingRight: =12
@@ -3043,7 +3041,6 @@ Screens:
                             Properties:
                               DropShadow: =DropShadow.None
                               FillPortions: =1
-                              LayoutAlignItems: =LayoutAlignItems.Center
                               LayoutDirection: =LayoutDirection.Horizontal
                               LayoutGap: =12
                               LayoutMinHeight: =1

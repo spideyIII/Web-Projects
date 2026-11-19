@@ -38,3 +38,11 @@ each CSV column to the column with the same display name. Two-option columns (`I
 Filter each table on the primary name column containing `[TEST]`, select all, delete. Results rows made
 while testing have `Parent Code` = `1.A` / `1.B`; delete those too (filter `U035 Inspection Results` on
 `Parent Code`), then delete the matching rows in `U035 Inspection DRF Results`.
+
+## `U035_Equipment_Guide_Items_MOD70_1A_EXAMPLE.csv`
+A copy of the structure in the real table for MOD 70, parent `1.A TORPEDO TUBES`: one Parent row and 12 Child
+rows (`1.A.(1)` to `1.A.(5)`, then `(5)(a)` to `(5)(g)`), with the same Name pattern (`M70-1.A`, `M70-1.A.1`,
+`M70-1.A.5.a`), Item Type (`Parent` / `Child`), Mod Number `70`, Sort Keys `100`, `110`...`157`.
+Item Text is simulated and starts with `[SIM]`; everything else follows the real layout.
+**Load this only into an environment that does not already have these rows** (the Name values match the real
+records). `IsSelectable` is Yes for the parent and No for the children.

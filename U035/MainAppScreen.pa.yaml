@@ -40,6 +40,7 @@ Screens:
                   _rowKey: "",
                   _subKey: "",
                   _refEglParent: "",
+                  _refImageKey: "",
                   _refSearch: "",
                   _drfShowAll: false
               }
@@ -2823,30 +2824,229 @@ Screens:
                           =UpdateContext({_refPopupView: "Images"})
                         Text: ="Images"
                         Width: =100
-                  - lblRefGnPlaceholder:
-                      Control: ModernText@1.0.0
+                  - vctrRefGn:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
                       Properties:
-                        Align: =Align.Center
-                        Color: =thmU035.TextMuted
-                        Height: =60
-                        Size: =14
-                        Text: ="General Notes will be added here."
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - 124
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =8
                         Visible: =_refPopupView = "GN"
                         Width: =Parent.Width - 24
                         X: =12
-                        Y: =120
-                  - lblRefImagesPlaceholder:
-                      Control: ModernText@1.0.0
+                        Y: =112
+                      Children:
+                        - lblRefGnTools:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Stretch
+                              AutoHeight: =true
+                              Color: =thmU035.TextBody
+                              FillPortions: =0
+                              FontWeight: =FontWeight.Semibold
+                              Size: =13
+                              Text: =LookUp(nfU035GnTools, Mod = nfModNumber).Text
+                              Visible: =!IsBlank(LookUp(nfU035GnTools, Mod = nfModNumber).Text)
+                        - lblRefGnEmpty:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.TextMuted
+                              FillPortions: =0
+                              Height: =40
+                              Size: =13
+                              Text: =$"No general notes are loaded for MOD {nfModNumber}."
+                              Visible: =CountRows(Filter(nfU035GnNotes, Mod = nfModNumber)) = 0
+                        - galRefGnNotes:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="General notes"
+                              BorderColor: =thmU035.Border
+                              FillPortions: =1
+                              Items: =Filter(nfU035GnNotes, Mod = nfModNumber)
+                              TemplateSize: =120
+                              Width: =Parent.Width
+                            Children:
+                              - ctrRefGnRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.Semilight
+                                    Fill: =thmU035.SurfaceAlt
+                                    Height: =112
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =12
+                                    PaddingBottom: =8
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    PaddingTop: =8
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                                  Children:
+                                    - lblRefGnId:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =thmU035.ChipText
+                                          Fill: =thmU035.ChipFill
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =15
+                                          RadiusBottomRight: =15
+                                          RadiusTopLeft: =15
+                                          RadiusTopRight: =15
+                                          Size: =12
+                                          Text: =ThisItem.ID
+                                          Width: =30
+                                    - lblRefGnText:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          Color: =thmU035.Text
+                                          FillPortions: =1
+                                          Height: =96
+                                          LayoutMinWidth: =1
+                                          Size: =13
+                                          Text: =ThisItem.NoteText
+                  - vctrRefImages:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
                       Properties:
-                        Align: =Align.Center
-                        Color: =thmU035.TextMuted
-                        Height: =60
-                        Size: =14
-                        Text: ="Reference images will be added here."
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height - 124
                         Visible: =_refPopupView = "Images"
                         Width: =Parent.Width - 24
                         X: =12
-                        Y: =120
+                        Y: =112
+                      Children:
+                        - lblRefImagesEmpty:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              Align: =Align.Center
+                              Color: =thmU035.TextMuted
+                              Height: =60
+                              Size: =14
+                              Text: =$"No reference images are loaded for MOD {nfModNumber}."
+                              Visible: =CountRows(nfInspectionImages) = 0
+                              Width: =Parent.Width
+                        - galRefImages:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="Reference images"
+                              BorderColor: =thmU035.Border
+                              Height: =Parent.Height
+                              Items: =nfInspectionImages
+                              TemplateSize: =84
+                              Visible: =CountRows(nfInspectionImages) > 0
+                              Width: =Max(280, Parent.Width * 0.3)
+                              X: =0
+                              Y: =0
+                            Children:
+                              - ctrRefImageRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.Semilight
+                                    Fill: =If(Text(ThisItem.'PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image')), thmU035.SelectedFill, thmU035.SurfaceAlt)
+                                    Height: =76
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    PaddingLeft: =8
+                                    PaddingRight: =8
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                                  Children:
+                                    - imgRefThumb:
+                                        Control: Image@2.2.3
+                                        Properties:
+                                          AccessibleLabel: =ThisItem.'Display Label'
+                                          Height: =60
+                                          Image: =ThisItem.'Reference Image'
+                                          ImagePosition: =ImagePosition.Fit
+                                          Width: =80
+                                    - lblRefImageLabel:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Color: =thmU035.Heading
+                                          FillPortions: =1
+                                          FontWeight: =FontWeight.Semibold
+                                          LayoutMinWidth: =1
+                                          Size: =12
+                                          Text: =Coalesce(ThisItem.'Display Label', ThisItem.'Reference Image Name')
+                              - btnRefImageSelect:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =$"Show {ThisItem.'Display Label'}"
+                                    Appearance: =ButtonAppearance.Transparent
+                                    Color: =Color.Transparent
+                                    FontWeight: =""
+                                    Height: =76
+                                    OnSelect: |-
+                                      =UpdateContext({_refImageKey: Text(ThisItem.'PK - Impact URO Reference Image')})
+                                    Text: =""
+                                    Width: =Parent.TemplateWidth - 8
+                                    X: =4
+                                    Y: =4
+                        - vctrRefImageViewer:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Height: =Parent.Height
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              Visible: =CountRows(nfInspectionImages) > 0
+                              Width: =Parent.Width - (Max(280, Parent.Width * 0.3) + 12)
+                              X: =Max(280, Parent.Width * 0.3) + 12
+                              Y: =0
+                            Children:
+                              - lblRefImageTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =thmU035.Heading
+                                    FillPortions: =0
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =28
+                                    Size: =16
+                                    Text: =Coalesce(LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).'Display Label', LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).'Reference Image Name')
+                              - lblRefImageDescription:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    Color: =thmU035.TextMuted
+                                    FillPortions: =0
+                                    Size: =12
+                                    Text: =LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).Description
+                                    Visible: =!IsBlank(LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).Description)
+                              - imgRefViewer:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    AccessibleLabel: =Coalesce(LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).'Display Label', "Reference image")
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    FillPortions: =1
+                                    Image: =LookUp(nfInspectionImages, Text('PK - Impact URO Reference Image') = Coalesce(_refImageKey, Text(First(nfInspectionImages).'PK - Impact URO Reference Image'))).'Reference Image'
+                                    ImagePosition: =ImagePosition.Fit
                   - vctrRefEgl:
                       Control: GroupContainer@1.5.0
                       Variant: ManualLayout

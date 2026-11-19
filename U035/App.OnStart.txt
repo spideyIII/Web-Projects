@@ -1,0 +1,257 @@
+// =================================================================================
+// U035 INSPECTION - APP.ONSTART
+//
+// Global-only seeds for variables and typed collections.
+// Paste this into App.OnStart, save, then run App > Run OnStart
+// before pasting App.Formulas.
+// =================================================================================
+
+
+// -----------------------------------------------------------------------------
+// 1. GLOBAL VARIABLES
+// -----------------------------------------------------------------------------
+
+Set(visibleTrigger, Now());
+Set(varID, "");
+Set(varSelectedShipName, "");
+Set(varSpinner, false);
+Set(varSpinnerText, "");
+Set(_spinner, false);
+Set(_spinnertext, "");
+Set(varInlineNoticeTitle, "");
+Set(varInlineNoticeSeverity, "Info");
+Set(varInlineNoticeBody, "");
+Set(varInlineNoticeUntil, Now());
+Set(varU035ThemeMode, "Light");
+Set(varShakeBell, false);
+Set(varShakeTimestamp, Now());
+Set(varLastSeverity, "");
+Set(varFlashColor, false);
+Set(varU035HasRemovals, false);
+Set(varLastNotificationChecked, Now());
+
+
+// -----------------------------------------------------------------------------
+// 2. TOAST COLLECTION TYPE SEED
+// -----------------------------------------------------------------------------
+
+ClearCollect(
+    colToasts,
+    {
+        Header: "",
+        Body: "",
+        Duration: 0,
+        Severity: "Info",
+        ShowDismiss: true,
+        ShowTime: true,
+        ShowProgress: false,
+        CurrentTime: Now(),
+        RemoveTime: Now(),
+        ToastVisible: false
+    }
+);
+Clear(colToasts);
+
+
+// -----------------------------------------------------------------------------
+// 3. PARENT RESULT COLLECTION TYPE SEED
+// -----------------------------------------------------------------------------
+
+ClearCollect(
+    colParentResults,
+    {
+        InspectionResultId: Blank(),
+        ImpactRequirementId: Blank(),
+        UROImpactItemId: Blank(),
+        OrderNumber: "",
+        DRFInspection: "",
+        ReferenceNotes: "",
+        Remarks: "",
+        Guidelines: "",
+        DRFType: "",
+        DOI: Blank(),
+        Signature: "",
+        AsFoundCAT: "",
+        VisualDefects: "",
+        AdditionalDate: Blank(),
+        AdditionalName: "",
+        AdditionalSignature: false,
+        DRFRequired: "",
+        FinalCAT: "",
+        IsDirty: false
+    }
+);
+Clear(colParentResults);
+
+ClearCollect(
+    colParentResultsBackup,
+    {
+        InspectionResultId: Blank(),
+        ImpactRequirementId: Blank(),
+        UROImpactItemId: Blank(),
+        OrderNumber: "",
+        DRFInspection: "",
+        ReferenceNotes: "",
+        Remarks: "",
+        Guidelines: "",
+        DRFType: "",
+        DOI: Blank(),
+        Signature: "",
+        AsFoundCAT: "",
+        VisualDefects: "",
+        AdditionalDate: Blank(),
+        AdditionalName: "",
+        AdditionalSignature: false,
+        DRFRequired: "",
+        FinalCAT: "",
+        IsDirty: false
+    }
+);
+Clear(colParentResultsBackup);
+
+
+// -----------------------------------------------------------------------------
+// 4. DRF CHILD RESULT COLLECTION TYPE SEED
+// -----------------------------------------------------------------------------
+
+ClearCollect(
+    colChildResults,
+    {
+        InspectionDRFResultId: Blank(),
+        ParentId: Blank(),
+        DefectLocation: "",
+        DefectDescription: "",
+        FaceDefectOnly: false,
+        DepthB: 0,
+        MinimumWallC: 0,
+        WallCalculation: 0,
+        AdjacentWallThickness: "",
+        AmountBelowMin: 0,
+        MeasurementMethod: "",
+        Notes: ""
+    }
+);
+Clear(colChildResults);
+
+
+// -----------------------------------------------------------------------------
+// 5. LEGACY / TRANSITION COLLECTIONS STILL USED IN CURRENT YAML
+// -----------------------------------------------------------------------------
+
+ClearCollect(
+    colShoppingCart,
+    {
+        'PK - U035 Impact Requirement DRF Inspection': Blank(),
+        'UROMODDRF Title': ""
+    }
+);
+Clear(colShoppingCart);
+
+ClearCollect(
+    colStaging,
+    {
+        InspectionResultId: Blank(),
+        ImpactRequirementId: Blank(),
+        UROImpactItemId: Blank(),
+        OrderNumber: "",
+        DRFInspection: "",
+        ReferenceNotes: "",
+        Remarks: "",
+        Guidelines: "",
+        DRFType: "",
+        DOI: Blank(),
+        Signature: "",
+        AsFoundCAT: "",
+        VisualDefects: "",
+        AdditionalDate: Blank(),
+        AdditionalName: "",
+        AdditionalSignature: false,
+        DRFRequired: "",
+        FinalCAT: "",
+        IsDirty: false
+    }
+);
+Clear(colStaging);
+
+
+// -----------------------------------------------------------------------------
+// 5B. SUBTASK ANSWER + SUBTASK DRF COLLECTION TYPE SEEDS
+// -----------------------------------------------------------------------------
+
+// DOI is seeded with a real date (not Blank()) so the collection column is typed as Date;
+// a Blank() seed leaves it untyped and Patch(..., {DOI: <date>}) then fails. Cleared right after.
+ClearCollect(
+    colSubtaskResults,
+    {
+        ParentCode: "",
+        ItemCode: "",
+        ItemText: "",
+        DOI: Date(2000, 1, 1),
+        AsFoundCAT: "",
+        VisualDefects: "",
+        DRFRequired: "",
+        FinalCAT: "",
+        Remarks: "",
+        Signature: ""
+    }
+);
+Clear(colSubtaskResults);
+
+ClearCollect(colU035SaveErrors, { Key: "" });
+Clear(colU035SaveErrors);
+
+ClearCollect(
+    colSubtaskDrf,
+    {
+        DrfId: "",
+        ParentCode: "",
+        ItemCode: "",
+        DrfTitle: "",
+        DrfType: "",
+        WallCalcManual: false,
+        DefectLocation: "",
+        DefectDescription: "",
+        FaceDefectOnly: false,
+        DepthB: 0,
+        MinimumWallC: 0,
+        WallCalculation: 0,
+        AdjacentWallThickness: "",
+        AmountBelowMin: 0,
+        MeasurementMethod: "",
+        Notes: ""
+    }
+);
+Clear(colSubtaskDrf);
+
+
+// -----------------------------------------------------------------------------
+// 6. USER BADGE LOOKUP
+// -----------------------------------------------------------------------------
+
+IfError(
+    Set(
+        varID,
+        Left(
+            Text(
+                Office365Users.HttpRequest(
+                    "https://dod-graph.microsoft.us/v1.0/users/" & User().Email & "?$select=employeeId",
+                    "GET",
+                    "",
+                    {ContentType: "application/json"}
+                ).employeeId
+            ),
+            10
+        )
+    ),
+    Set(varID, "")
+);
+
+
+// -----------------------------------------------------------------------------
+// 7. FINAL STATE
+// -----------------------------------------------------------------------------
+
+Set(varSpinner, false);
+Set(varSpinnerText, "");
+Set(_spinner, false);
+Set(_spinnertext, "");

@@ -1,0 +1,1504 @@
+// ============================================================================
+// U035 APP.FORMULAS
+// ============================================================================
+// 1. CORE RECORD / ENVIRONMENT FORMULAS
+// These are the shared app-level helpers used across the U035 screen.
+// ============================================================================
+
+nfRecordItem = If(
+    IsBlank(Param("recordId")),
+    LookUp(
+        'URO Impact Items',
+        'Impact Item Number' = "DART-000326"
+    ),
+    LookUp(
+        'URO Impact Items',
+        'PK - URO Impact Item' = GUID(
+            Substitute(
+                Substitute(
+                    Param("recordId"),
+                    "{",
+                    ""
+                ),
+                "}",
+                ""
+            )
+        )
+    )
+);
+
+nfInWorkingStatus = nfRecordItem.'Owning Team Code' = "OWN-WORKING";
+
+nfFeatureShowMainScreen = LookUp(
+    'Environment Variable Definitions',
+    'Schema Name' = "impact_U035ImpactFeatureShowMainScreen"
+).'Default Value' = "true";
+
+nfReportGUID = nfRecordItem.'PK - URO Impact Item';
+
+nfShip = LookUp(
+    'Common Navy Ships',
+    'Ship Name' = nfRecordItem.Ship.'Ship Name'
+);
+
+nfAvailability = LookUp(
+    'Ship Availabilities',
+    'Availability Name' = nfRecordItem.Availability.'Availability Name'
+);
+
+nfUROMRC = nfRecordItem.'URO MRC';
+
+nfHeader = $"{nfRecordItem.'Impact Item Number'} : USS {nfShip.'Ship Name'} ({nfShip.'Ship Symbol'} {nfShip.'Ship Number'}) {nfAvailability.'Availability Name'} URO/MRC: {nfUROMRC.'URO MRC Number'} {If(User().Email = "derek.r.miles4.civ@us.navy.mil", "   " & visibleTrigger, "")} M{nfModNumber}";
+
+// Used by the signature/helper flow already present in your app.
+nfIDPart1 = varID;
+
+
+// ============================================================================
+// 2. MOD HELPER
+// Converts ship class into the U035 MOD number used throughout the app.
+// ============================================================================
+
+GetModNumber('Ship Class': Text): Number = Switch(
+    'Ship Class',
+    "Los Angeles Class SSN",
+    1,
+    "Ohio Class SSGN",
+    1,
+    "Ohio Class SSBN",
+    1,
+    "Virginia Class SSN",
+    70,
+    "Seawolf Class SSN",
+    80,
+    0
+);
+
+nfModNumber = GetModNumber(nfShip.'Ship Class');
+
+
+// ============================================================================
+// 3. TOAST / NOTIFICATION HELPERS
+// These support your in-app toast collection and bell-shake behavior.
+// ============================================================================
+
+// Same shape and behavior as U008: Header/Body fields (what the notification-center
+// component and the colToasts seed in App.OnStart expect), plus the inline notice
+// variables that drive the strip under the header on the screen.
+tpToast := Type({
+    Header: Text,
+    Body: Text,
+    Duration: Number,
+    Severity: Text,
+    ShowDismiss: Boolean,
+    ShowTime: Boolean,
+    ShowProgress: Boolean,
+    CurrentTime: DateTime,
+    RemoveTime: DateTime,
+    ToastVisible: Boolean
+});
+
+// Returns true (not Void) because existing callers use it as the last value of
+// Boolean functions, e.g. AddU035EglTaskToWorklist.
+nfSendToast(Header: Text, Body: Text, Duration: Number, Severity: Text): Boolean =
+{
+    Set(varInlineNoticeTitle, Header);
+    Set(varInlineNoticeBody, Body);
+    Set(varInlineNoticeSeverity, Severity);
+    Set(
+        varInlineNoticeUntil,
+        DateAdd(Now(), Duration, TimeUnit.Milliseconds)
+    );
+    Collect(
+        colToasts,
+        {
+            Header: Header,
+            Body: Body,
+            Duration: Duration,
+            Severity: Severity,
+            ShowDismiss: true,
+            ShowTime: true,
+            ShowProgress: false,
+            CurrentTime: Now(),
+            RemoveTime: DateAdd(Now(), Duration, TimeUnit.Milliseconds),
+            ToastVisible: true
+        }
+    );
+    Set(varShakeBell, true);
+    Set(varShakeTimestamp, Now());
+    Set(varLastSeverity, Severity);
+    true
+};
+
+
+// ============================================================================
+// 4. OPTIONAL LOCAL THEME RECORD
+// Keep this if you want to use thmU035 in controls.
+// Your current screen may still use App.Theme.Colors in some places.
+// ============================================================================
+
+// Theme palette. Switches with varU035ThemeMode (toggled by btnThemeToggle).
+// Both records MUST have the same fields. Edit colors here.
+thmU035 = If(
+    varU035ThemeMode = "Dark",
+    {
+        Primary: RGBA(77, 166, 255, 1),
+        PrimaryHover: ColorFade(RGBA(77, 166, 255, 1), 20%),
+        PrimaryPressed: ColorFade(RGBA(77, 166, 255, 1), 35%),
+
+        Background: RGBA(24, 26, 30, 1),
+        AppBg: RGBA(24, 26, 30, 1),
+        Surface: RGBA(36, 39, 45, 1),
+        SurfaceAlt: RGBA(44, 48, 55, 1),
+        SurfaceSubtle: RGBA(52, 56, 64, 1),
+        Overlay: RGBA(0, 0, 0, 0.6),
+
+        Text: RGBA(240, 240, 240, 1),
+        TextBody: RGBA(240, 240, 240, 1),
+        TextMuted: RGBA(170, 175, 185, 1),
+        TextInverse: RGBA(255, 255, 255, 1),
+        Heading: RGBA(255, 255, 255, 1),
+        Link: RGBA(110, 180, 255, 1),
+
+        Border: RGBA(70, 75, 85, 1),
+        BorderStrong: RGBA(130, 135, 145, 1),
+
+        ChipFill: RGBA(30, 60, 90, 1),
+        ChipText: RGBA(160, 210, 255, 1),
+
+        Success: RGBA(80, 200, 80, 1),
+        SuccessBg: RGBA(25, 60, 30, 1),
+        SuccessText: RGBA(150, 230, 150, 1),
+
+        Warning: RGBA(255, 185, 0, 1),
+        WarnBg: RGBA(70, 55, 15, 1),
+        WarnText: RGBA(255, 215, 120, 1),
+
+        Danger: RGBA(200, 60, 66, 1),
+
+        Info: RGBA(77, 166, 255, 1),
+        InfoBg: RGBA(25, 55, 85, 1),
+
+        HeaderFill: RGBA(32, 35, 40, 1),
+        SelectedFill: RGBA(35, 70, 110, 1),
+        DisabledFill: RGBA(50, 52, 58, 1),
+        DisabledText: RGBA(120, 122, 130, 1)
+    },
+    {
+        Primary: RGBA(0, 120, 212, 1),
+        PrimaryHover: ColorFade(RGBA(0, 120, 212, 1), -20%),
+        PrimaryPressed: ColorFade(RGBA(0, 120, 212, 1), -30%),
+
+        Background: RGBA(245, 247, 250, 1),
+        AppBg: RGBA(245, 247, 250, 1),
+        Surface: RGBA(255, 255, 255, 1),
+        SurfaceAlt: RGBA(250, 249, 248, 1),
+        SurfaceSubtle: RGBA(243, 242, 241, 1),
+        Overlay: RGBA(0, 0, 0, 0.35),
+
+        Text: RGBA(32, 31, 30, 1),
+        TextBody: RGBA(32, 31, 30, 1),
+        TextMuted: RGBA(96, 94, 92, 1),
+        TextInverse: RGBA(255, 255, 255, 1),
+        Heading: RGBA(16, 24, 40, 1),
+        Link: RGBA(0, 102, 180, 1),
+
+        Border: RGBA(217, 217, 217, 1),
+        BorderStrong: RGBA(138, 136, 134, 1),
+
+        ChipFill: RGBA(230, 243, 255, 1),
+        ChipText: RGBA(0, 69, 120, 1),
+
+        Success: RGBA(16, 124, 16, 1),
+        SuccessBg: RGBA(223, 246, 221, 1),
+        SuccessText: RGBA(16, 84, 16, 1),
+
+        Warning: RGBA(255, 185, 0, 1),
+        WarnBg: RGBA(255, 244, 206, 1),
+        WarnText: RGBA(123, 63, 0, 1),
+
+        Danger: RGBA(164, 38, 44, 1),
+
+        Info: RGBA(0, 120, 212, 1),
+        InfoBg: RGBA(230, 243, 255, 1),
+
+        HeaderFill: RGBA(240, 244, 248, 1),
+        SelectedFill: RGBA(230, 243, 255, 1),
+        DisabledFill: RGBA(245, 245, 245, 1),
+        DisabledText: RGBA(161, 159, 157, 1)
+    }
+);
+
+
+// ============================================================================
+// 5. REFERENCE IMAGE HELPER
+// Pulls the U035 images for the current MOD from Dataverse.
+// ============================================================================
+
+nfInspectionImages =
+SortByColumns(
+    Filter(
+        'Impact URO Reference Images',
+        'URO MRC'.'URO MRC Number' = "035" &&
+        'URO Mod' = nfModNumber
+    ),
+    "impact_displayorder",
+    SortOrder.Ascending
+);
+
+
+// ============================================================================
+// 6. U035 RESULT RECORD TYPES
+// These define the local collection shapes already used by the screen.
+// ============================================================================
+
+U035InspectionResultRecordType := Type({
+    InspectionResultId: GUID,
+    ImpactRequirementId: GUID,
+    UROImpactItemId: GUID,
+    OrderNumber: Text,
+    DRFInspection: Text,
+    ReferenceNotes: Text,
+    Remarks: Text,
+    Guidelines: Text,
+    DRFType: Text,
+    DOI: Date,
+    Signature: Text,
+    AsFoundCAT: Text,
+    VisualDefects: Text,
+    AdditionalDate: Date,
+    AdditionalName: Text,
+    AdditionalSignature: Boolean,
+    DRFRequired: Text,
+    FinalCAT: Text,
+    IsDirty: Boolean
+});
+U035InspectionResultTableType := Type([U035InspectionResultRecordType]);
+
+U035DetailedDRFResultRecordType := Type({
+    InspectionDRFResultId: GUID,
+    ParentId: GUID,
+    DefectLocation: Text,
+    DefectDescription: Text,
+    FaceDefectOnly: Boolean,
+    DepthB: Number,
+    MinimumWallC: Number,
+    WallCalculation: Number,
+    AdjacentWallThickness: Text,
+    AmountBelowMin: Number,
+    MeasurementMethod: Text,
+    Notes: Text
+});
+U035DetailedDRFResultTableType := Type([U035DetailedDRFResultRecordType]);
+
+
+// ============================================================================
+// 7. LOAD FUNCTIONS
+// Used by the screen to load existing parent and child inspection data.
+// ============================================================================
+
+InitializeParentItems(reportGUID: GUID): U035InspectionResultTableType = ForAll(
+    Filter(
+        'U035 Inspection Results',
+        'URO Impact Item'.'PK - URO Impact Item' = reportGUID
+    ),
+    {
+        InspectionResultId: ThisRecord.'PK - U035 Inspection Result',
+        ImpactRequirementId: ThisRecord.'U035 Impact Requirement'.'PK - U035 Impact Requirement DRF Inspection',
+        UROImpactItemId: ThisRecord.'URO Impact Item'.'PK - URO Impact Item',
+        DRFInspection: ThisRecord.'DRF Inspection',
+        OrderNumber: ThisRecord.'U035 Impact Requirement'.'Order Number',
+        ReferenceNotes: ThisRecord.'U035 Impact Requirement'.'Reference Notes',
+        Remarks: ThisRecord.Remarks,
+        Guidelines: ThisRecord.'U035 Impact Requirement'.Guidelines,
+        DRFType: ThisRecord.'U035 Impact Requirement'.'DRF Type',
+        DOI: ThisRecord.'Date of Inspection',
+        AdditionalDate: ThisRecord.'Additional Date',
+        AdditionalName: ThisRecord.'Additional Name',
+        AdditionalSignature: ThisRecord.'Additional Signature',
+        AsFoundCAT: ThisRecord.'As Found CAT',
+        VisualDefects: ThisRecord.'Visual Defects',
+        Signature: ThisRecord.Signature,
+        DRFRequired: ThisRecord.'DRF Required',
+        FinalCAT: ThisRecord.'Final CAT',
+        IsDirty: false
+    }
+);
+
+InitializeChildItems(reportGUID: GUID): U035DetailedDRFResultTableType = ForAll(
+    Filter(
+        'U035 Inspection DRF Results',
+        'DRF Inspection'.'URO Impact Item'.'PK - URO Impact Item' = reportGUID
+    ),
+    {
+        InspectionDRFResultId: ThisRecord.'PK - U035 Inspection DRF Result',
+        ParentId: ThisRecord.'DRF Inspection'.'PK - U035 Inspection Result',
+        DefectLocation: ThisRecord.'Defect Location',
+        DefectDescription: ThisRecord.'Defect Description Length X Width',
+        FaceDefectOnly: ThisRecord.'Face Defect Only',
+        DepthB: ThisRecord.'Depth B',
+        MinimumWallC: ThisRecord.'Minimum Wall Thickness C',
+        WallCalculation: ThisRecord.'Wall Calculation',
+        AdjacentWallThickness: ThisRecord.'Adjacent Unaffected Wall Thickness',
+        AmountBelowMin: ThisRecord.'Amount Below Dwg Min',
+        MeasurementMethod: ThisRecord.'Measurement Method',
+        Notes: ThisRecord.Notes
+    }
+);
+
+
+// ============================================================================
+// 8. SAVE FUNCTIONS
+// Used by the screen's main save path.
+// IMPORTANT: This still uses 'U035 Impact Requirements' for parent linking.
+// ============================================================================
+
+SaveParentItems(collectionToSave: U035InspectionResultTableType): Boolean =
+{
+    ForAll(
+        Filter(
+            collectionToSave,
+            IsDirty
+        ) As recordToSave,
+        Patch(
+            'U035 Inspection Results',
+            If(
+                IsBlank(recordToSave.InspectionResultId),
+                Defaults('U035 Inspection Results'),
+                LookUp(
+                    'U035 Inspection Results',
+                    'PK - U035 Inspection Result' = recordToSave.InspectionResultId
+                )
+            ),
+            {
+                'URO Impact Item': nfRecordItem,
+                'U035 Impact Requirement': LookUp(
+                    'U035 Impact Requirements',
+                    'PK - U035 Impact Requirement DRF Inspection' = recordToSave.ImpactRequirementId
+                ),
+                'DRF Inspection': recordToSave.DRFInspection,
+                'Date of Inspection': recordToSave.DOI,
+                'As Found CAT': recordToSave.AsFoundCAT,
+                'Visual Defects': recordToSave.VisualDefects,
+                Remarks: recordToSave.Remarks,
+                'Additional Date': recordToSave.AdditionalDate,
+                'Additional Name': recordToSave.AdditionalName,
+                'Additional Signature': recordToSave.AdditionalSignature,
+                Signature: recordToSave.Signature,
+                'DRF Required': recordToSave.DRFRequired,
+                'Final CAT': recordToSave.FinalCAT
+            }
+        )
+    );
+    true
+};
+
+SaveChildItems(parentGUID: GUID, childCollection: U035DetailedDRFResultTableType): Boolean =
+{
+    With(
+        {
+            parentRecord: LookUp(
+                'U035 Inspection Results',
+                'PK - U035 Inspection Result' = parentGUID
+            ),
+            Type: LookUp(
+                colParentResults,
+                InspectionResultId = parentGUID
+            ).DRFType
+        },
+        RemoveIf(
+            'U035 Inspection DRF Results',
+            'DRF Inspection'.'PK - U035 Inspection Result' = parentGUID
+        );
+        ForAll(
+            Filter(
+                childCollection,
+                ParentId = parentGUID
+            ) As childToSave,
+            Patch(
+                'U035 Inspection DRF Results',
+                Defaults('U035 Inspection DRF Results'),
+                {
+                    'DRF Inspection': parentRecord,
+                    'DRF Title and Type (A or B)': $"Component {parentRecord.'DRF Inspection'} Type {Type}",
+                    'Defect Location': childToSave.DefectLocation,
+                    'Defect Description Length X Width': childToSave.DefectDescription,
+                    'Face Defect Only': childToSave.FaceDefectOnly,
+                    'Depth B': childToSave.DepthB,
+                    'Minimum Wall Thickness C': childToSave.MinimumWallC,
+                    'Wall Calculation': childToSave.WallCalculation,
+                    'Adjacent Unaffected Wall Thickness': childToSave.AdjacentWallThickness,
+                    'Measurement Method': childToSave.MeasurementMethod,
+                    Notes: childToSave.Notes,
+                    'Amount Below Dwg Min': If(
+                        Type = "B",
+                        childToSave.AmountBelowMin,
+                        Blank()
+                    )
+                }
+            )
+        )
+    );
+    true
+};
+
+
+// ============================================================================
+// 9. EGL TABLE TYPES
+// These match ONLY the new U035 Equipment Guide Items columns.
+// ============================================================================
+
+U035EglItemRecordType := Type({
+    Name: Text,
+    ModNumber: Text,
+    ParentCode: Text,
+    ParentTitle: Text,
+    ItemCode: Text,
+    ItemText: Text,
+    ItemType: Text,
+    SortKey: Text,
+    IsSelectable: Boolean
+});
+U035EglItemTableType := Type([U035EglItemRecordType]);
+
+U035EglParentPickerRecordType := Type({
+    ParentCode: Text,
+    ParentTitle: Text,
+    SearchText: Text,
+    SortKey: Text
+});
+U035EglParentPickerTableType := Type([U035EglParentPickerRecordType]);
+
+U035EglSubtaskRecordType := Type({
+    ParentCode: Text,
+    ParentTitle: Text,
+    ItemCode: Text,
+    ItemText: Text,
+    ItemType: Text,
+    SortKey: Text
+});
+U035EglSubtaskTableType := Type([U035EglSubtaskRecordType]);
+
+
+// ============================================================================
+// 10. EGL DATAVERSE SOURCE
+// Normalizes the Dataverse rows into a simple app-side table shape.
+// Assumes the datasource resolves as 'U035 Equipment Guide Items'.
+// ============================================================================
+
+nfEquipmentGuideList = ForAll(
+    Filter(
+        'U035 Equipment Guide Items',
+        'Mod Number' = Text(nfModNumber)
+    ),
+    {
+        Name: ThisRecord.Name,
+        ModNumber: ThisRecord.'Mod Number',
+        ParentCode: ThisRecord.'Parent Code',
+        ParentTitle: ThisRecord.'Parent Title',
+        ItemCode: ThisRecord.'Item Code',
+        ItemText: ThisRecord.'Item Text',
+        ItemType: ThisRecord.'Item Type',
+        SortKey: ThisRecord.'Sort Key',
+        IsSelectable: ThisRecord.IsSelectable
+    }
+);
+
+
+// ============================================================================
+// 11. EGL PICKER PARENTS
+// Only rows marked IsSelectable = true are exposed in the picker.
+// ============================================================================
+
+nfU035SelectableEglParents = SortByColumns(
+    ForAll(
+        Filter(
+            nfEquipmentGuideList,
+            IsSelectable = true
+        ),
+        {
+            ParentCode: ParentCode,
+            ParentTitle: ParentTitle,
+            SearchText: Upper(
+                Coalesce(ParentCode, "") & " " &
+                Coalesce(ParentTitle, "")
+            ),
+            SortKey: SortKey
+        }
+    ),
+    "SortKey",
+    SortOrder.Ascending
+);
+
+
+// ============================================================================
+// 12. EGL SUBTASK HELPER
+// Returns the non-selectable child rows for one selected parent code.
+// ============================================================================
+
+nfU035EglSubtasks(parentCode: Text): U035EglSubtaskTableType = SortByColumns(
+    ForAll(
+        Filter(
+            nfEquipmentGuideList,
+            ParentCode = parentCode &&
+            IsSelectable = false
+        ),
+        {
+            ParentCode: ParentCode,
+            ParentTitle: ParentTitle,
+            ItemCode: ItemCode,
+            ItemText: ItemText,
+            ItemType: ItemType,
+            SortKey: SortKey
+        }
+    ),
+    "SortKey",
+    SortOrder.Ascending
+);
+
+
+// ============================================================================
+// 13. TRANSITIONAL PICKER BRIDGE
+// This lets old picker references use the new EGL parent table.
+// ============================================================================
+
+nfDRFItems = nfU035SelectableEglParents;
+
+
+// ============================================================================
+// 14. ADD ONE EGL PARENT TASK TO THE WORKLIST
+// This preserves the current parent collection shape used by the app.
+// IMPORTANT: ImpactRequirementId is blank for EGL-only inserted rows.
+// ============================================================================
+
+AddU035EglTaskToWorklist(parentCode: Text): Boolean =
+{
+    With(
+        {
+            selectedParent: LookUp(
+                nfU035SelectableEglParents,
+                ParentCode = parentCode
+            )
+        },
+        If(
+            IsBlank(selectedParent.ParentCode),
+            nfSendToast(
+                "Nothing added",
+                "The selected EGL task could not be found.",
+                4000,
+                "Warning"
+            ),
+            !IsBlank(
+                LookUp(
+                    colParentResults,
+                    OrderNumber = selectedParent.ParentCode
+                )
+            ),
+            nfSendToast(
+                "Nothing added",
+                "That EGL task is already in the worklist.",
+                4000,
+                "Warning"
+            ),
+            Collect(
+                colParentResults,
+                {
+                    InspectionResultId: Blank(),
+                    ImpactRequirementId: Blank(),
+                    UROImpactItemId: nfRecordItem.'PK - URO Impact Item',
+                    OrderNumber: selectedParent.ParentCode,
+                    DRFInspection: selectedParent.ParentTitle,
+                    ReferenceNotes: "",
+                    Remarks: "",
+                    Guidelines: "",
+                    DRFType: "",
+                    DOI: Blank(),
+                    Signature: "",
+                    AsFoundCAT: "",
+                    VisualDefects: "",
+                    AdditionalDate: Blank(),
+                    AdditionalName: "",
+                    AdditionalSignature: false,
+                    DRFRequired: "",
+                    FinalCAT: "",
+                    IsDirty: true
+                }
+            );
+            ForAll(
+                nfU035EglSubtasks(selectedParent.ParentCode) As s,
+                EnsureU035Sub(selectedParent.ParentCode, s.ItemCode)
+            );
+            ClearCollect(
+                colParentResultsBackup,
+                colParentResults
+            );
+            nfSendToast(
+                "Task added",
+                "The EGL task was added to the worklist.",
+                3000,
+                "Success"
+            )
+        )
+    )
+};
+// ============================================================================
+// U035 SCREEN SUPPORT HELPERS
+// Added to satisfy top-screen references
+// ============================================================================
+
+HasDirtyChanges = CountRows(Filter(colParentResults, IsDirty)) > 0 || varU035HasRemovals;
+
+nfU035CurrentRow(rowId: GUID): U035InspectionResultRecordType =
+LookUp(
+    colParentResults,
+    InspectionResultId = rowId
+);
+
+nfU035CurrentDrfType(rowId: GUID): Text =
+Coalesce(
+    LookUp(
+        colParentResults,
+        InspectionResultId = rowId
+    ).DRFType,
+    ""
+);
+
+nfU035ChildRow(childId: GUID): U035DetailedDRFResultRecordType =
+LookUp(
+    colChildResults,
+    InspectionDRFResultId = childId
+);
+
+nfU035ChildRowMissing(childId: GUID): Number =
+With(
+    {
+        r: LookUp(
+            colChildResults,
+            InspectionDRFResultId = childId
+        )
+    },
+    CountIf(
+        Table(
+            { Needed: IsBlank(r.DefectLocation) },
+            { Needed: IsBlank(r.DefectDescription) },
+            { Needed: IsBlank(r.MeasurementMethod) },
+            { Needed: r.DepthB = 0 },
+            { Needed: r.MinimumWallC = 0 }
+        ),
+        Needed
+    )
+);
+
+nfU035Guidelines(rowId: GUID): Text =
+Coalesce(
+    LookUp(
+        colParentResults,
+        InspectionResultId = rowId
+    ).Guidelines,
+    ""
+);
+
+nfU035RowSigned(rowId: GUID): Boolean =
+!IsBlank(
+    Trim(
+        Coalesce(
+            LookUp(
+                colParentResults,
+                InspectionResultId = rowId
+            ).Signature,
+            ""
+        )
+    )
+);
+
+nfU035CanEditRow(rowId: GUID): Boolean =
+nfInWorkingStatus &&
+!nfU035RowSigned(rowId);
+
+nfU035CanRemoveRowSignature(rowId: GUID): Boolean =
+nfInWorkingStatus &&
+nfU035RowSigned(rowId);
+
+nfU035ScreeningMissing(rowId: GUID): Number =
+With(
+    {
+        r: LookUp(
+            colParentResults,
+            InspectionResultId = rowId
+        )
+    },
+    CountIf(
+        Table(
+            { Needed: IsBlank(r.DOI) },
+            { Needed: IsBlank(r.AsFoundCAT) },
+            { Needed: IsBlank(r.VisualDefects) },
+            { Needed: IsBlank(r.DRFRequired) },
+            { Needed: IsBlank(r.FinalCAT) }
+        ),
+        Needed
+    )
+);
+
+nfU035DefectsMissing(rowId: GUID): Number =
+If(
+    LookUp(
+        colParentResults,
+        InspectionResultId = rowId
+    ).DRFRequired = "Yes",
+    CountRows(
+        Filter(
+            colChildResults,
+            ParentId = rowId
+        )
+    ),
+    0
+);
+
+nfU035RowMissing(rowId: GUID): Number =
+nfU035ScreeningMissing(rowId) +
+If(
+    LookUp(
+        colParentResults,
+        InspectionResultId = rowId
+    ).DRFRequired = "Yes" &&
+    CountRows(
+        Filter(
+            colChildResults,
+            ParentId = rowId
+        )
+    ) = 0,
+    1,
+    0
+);
+
+nfU035RowComplete(rowId: GUID): Boolean =
+nfU035RowMissing(rowId) = 0;
+
+nfU035RowStarted(rowId: GUID): Boolean =
+With(
+    {
+        r: LookUp(
+            colParentResults,
+            InspectionResultId = rowId
+        )
+    },
+    !IsBlank(r.DOI) ||
+    !IsBlank(r.AsFoundCAT) ||
+    !IsBlank(r.VisualDefects) ||
+    !IsBlank(r.DRFRequired) ||
+    !IsBlank(r.FinalCAT) ||
+    !IsBlank(r.Remarks) ||
+    CountRows(
+        Filter(
+            colChildResults,
+            ParentId = rowId
+        )
+    ) > 0
+);
+
+nfU035RowStatusText(rowId: GUID): Text =
+If(
+    nfU035RowSigned(rowId),
+    "Signed",
+    If(
+        nfU035RowComplete(rowId),
+        "Complete",
+        If(
+            nfU035RowStarted(rowId),
+            "In Progress",
+            "Not Started"
+        )
+    )
+);
+
+nfU035AllRowsSigned(): Boolean =
+CountRows(colParentResults) > 0 &&
+CountRows(
+    Filter(
+        colParentResults,
+        IsBlank(Trim(Coalesce(Signature, "")))
+    )
+) = 0;
+
+NormalizeU035ChildRowIds(): Boolean =
+{
+    ForAll(
+        Filter(
+            colChildResults,
+            IsBlank(InspectionDRFResultId)
+        ) As r,
+        Patch(
+            colChildResults,
+            r,
+            {
+                InspectionDRFResultId: GUID()
+            }
+        )
+    );
+    true
+};
+
+// Called by btnSave. (Name kept so the screen needs no change.)
+SaveAndRepopulateU035(): Boolean =
+{
+    Set(varSpinner, true);
+    Set(varSpinnerText, "Saving...");
+    With(
+        { ok: SaveU035Results() },
+        Set(varSpinner, false);
+        Set(varSpinnerText, "");
+        ok
+    )
+};
+
+
+// ============================================================================
+// 15. SUBTASK ANSWER STORE (one row per parent code + subtask ItemCode)
+// Parent = EGL task (code/title/signature only). Every screening answer lives
+// on the subtask. DRF rows hang off the same ParentCode + ItemCode pair, so the
+// three collections can always be joined back into one JSON object.
+// ============================================================================
+
+U035SubtaskResultRecordType := Type({
+    ParentCode: Text,
+    ItemCode: Text,
+    ItemText: Text,
+    DOI: Date,
+    AsFoundCAT: Text,
+    VisualDefects: Text,
+    DRFRequired: Text,
+    FinalCAT: Text,
+    Remarks: Text,
+    Signature: Text
+});
+U035SubtaskResultTableType := Type([U035SubtaskResultRecordType]);
+
+U035SubtaskDrfRecordType := Type({
+    DrfId: Text,
+    ParentCode: Text,
+    ItemCode: Text,
+    DrfTitle: Text,
+    DrfType: Text,
+    WallCalcManual: Boolean,
+    DefectLocation: Text,
+    DefectDescription: Text,
+    FaceDefectOnly: Boolean,
+    DepthB: Number,
+    MinimumWallC: Number,
+    WallCalculation: Number,
+    AdjacentWallThickness: Text,
+    AmountBelowMin: Number,
+    MeasurementMethod: Text,
+    Notes: Text
+});
+U035SubtaskDrfTableType := Type([U035SubtaskDrfRecordType]);
+
+nfU035Parent(parentCode: Text): U035InspectionResultRecordType =
+LookUp(colParentResults, OrderNumber = parentCode);
+
+nfU035Sub(parentCode: Text, itemCode: Text): U035SubtaskResultRecordType =
+LookUp(colSubtaskResults, ParentCode = parentCode && ItemCode = itemCode);
+
+nfU035Drf(drfId: Text): U035SubtaskDrfRecordType =
+LookUp(colSubtaskDrf, DrfId = drfId);
+
+// Creates the blank answer row for a subtask the first time it is opened.
+EnsureU035Sub(parentCode: Text, itemCode: Text): Boolean =
+{
+    If(
+        !IsBlank(itemCode) && IsBlank(nfU035Sub(parentCode, itemCode).ItemCode),
+        Collect(
+            colSubtaskResults,
+            {
+                ParentCode: parentCode,
+                ItemCode: itemCode,
+                ItemText: LookUp(nfU035EglSubtasks(parentCode), ItemCode = itemCode).ItemText,
+                DOI: Blank(),
+                AsFoundCAT: "",
+                VisualDefects: "",
+                DRFRequired: "",
+                FinalCAT: "",
+                Remarks: "",
+                Signature: ""
+            }
+        )
+    );
+    true
+};
+
+// Flags the parent row so the existing Save / leave-page prompts see the change.
+MarkU035Dirty(parentCode: Text): Boolean =
+{
+    Patch(
+        colParentResults,
+        LookUp(colParentResults, OrderNumber = parentCode),
+        { IsDirty: true }
+    );
+    true
+};
+
+nfU035ParentSigned(parentCode: Text): Boolean =
+!IsBlank(Trim(Coalesce(nfU035Parent(parentCode).Signature, "")));
+
+nfU035CanEditCode(parentCode: Text): Boolean =
+nfInWorkingStatus && !nfU035ParentSigned(parentCode);
+
+nfU035CanRemoveSigByCode(parentCode: Text): Boolean =
+nfInWorkingStatus && nfU035ParentSigned(parentCode);
+
+
+// ----------------------------------------------------------------------------
+// DRF row completeness (same required fields as the original child-row check)
+// ----------------------------------------------------------------------------
+
+nfU035DrfRowMissing(drfId: Text): Number =
+With(
+    { r: nfU035Drf(drfId) },
+    CountIf(
+        Table(
+            { Needed: IsBlank(r.DrfTitle) },
+            { Needed: IsBlank(r.DefectLocation) },
+            { Needed: IsBlank(r.DefectDescription) },
+            { Needed: IsBlank(r.MeasurementMethod) },
+            { Needed: r.DepthB = 0 },
+            { Needed: r.MinimumWallC = 0 }
+        ),
+        Needed
+    )
+);
+
+
+// ----------------------------------------------------------------------------
+// SUBTASK STATUS
+// Complete = all five screening answers present, and when DRF Required = Yes
+// at least one DRF row exists and every DRF row is complete.
+// ----------------------------------------------------------------------------
+
+nfU035SubComplete(parentCode: Text, itemCode: Text): Boolean =
+With(
+    {
+        r: nfU035Sub(parentCode, itemCode),
+        drfRows: CountRows(Filter(colSubtaskDrf, ParentCode = parentCode && ItemCode = itemCode)),
+        drfBad: CountRows(
+            Filter(
+                colSubtaskDrf,
+                ParentCode = parentCode && ItemCode = itemCode && nfU035DrfRowMissing(DrfId) > 0
+            )
+        )
+    },
+    !IsBlank(r.DOI) &&
+    !IsBlank(r.AsFoundCAT) &&
+    !IsBlank(r.VisualDefects) &&
+    !IsBlank(r.FinalCAT) &&
+    (
+        r.DRFRequired = "No" ||
+        (r.DRFRequired = "Yes" && drfRows > 0 && drfBad = 0)
+    )
+);
+
+nfU035SubStarted(parentCode: Text, itemCode: Text): Boolean =
+With(
+    { r: nfU035Sub(parentCode, itemCode) },
+    !IsBlank(r.DOI) ||
+    !IsBlank(r.AsFoundCAT) ||
+    !IsBlank(r.VisualDefects) ||
+    !IsBlank(r.DRFRequired) ||
+    !IsBlank(r.FinalCAT) ||
+    !IsBlank(r.Remarks)
+);
+
+nfU035SubStatusText(parentCode: Text, itemCode: Text): Text =
+If(
+    nfU035SubComplete(parentCode, itemCode),
+    "Done",
+    If(nfU035SubStarted(parentCode, itemCode), "In Progress", "Not Started")
+);
+
+nfU035SubDoneCount(parentCode: Text): Number =
+CountRows(
+    Filter(
+        nfU035EglSubtasks(parentCode),
+        nfU035SubComplete(parentCode, ItemCode)
+    )
+);
+
+nfU035ParentComplete(parentCode: Text): Boolean =
+CountRows(nfU035EglSubtasks(parentCode)) > 0 &&
+nfU035SubDoneCount(parentCode) = CountRows(nfU035EglSubtasks(parentCode));
+
+nfU035ParentStarted(parentCode: Text): Boolean =
+CountRows(
+    Filter(
+        nfU035EglSubtasks(parentCode),
+        nfU035SubStarted(parentCode, ItemCode)
+    )
+) > 0;
+
+nfU035ParentStatus(parentCode: Text): Text =
+If(
+    nfU035ParentSigned(parentCode),
+    "Signed",
+    If(
+        nfU035ParentComplete(parentCode),
+        "Complete",
+        If(nfU035ParentStarted(parentCode), "In Progress", "Not Started")
+    )
+);
+
+// Previous / Next navigation inside the modal (step = -1 or 1).
+nfU035AdjacentSubtask(parentCode: Text, currentItemCode: Text, step: Number): Text =
+IfError(
+    With(
+        { subs: nfU035EglSubtasks(parentCode) },
+        With(
+            {
+                pos: Coalesce(
+                    First(
+                        Filter(
+                            Sequence(CountRows(subs)),
+                            Index(subs, Value).ItemCode = currentItemCode
+                        )
+                    ).Value,
+                    1
+                )
+            },
+            Index(subs, Max(1, Min(CountRows(subs), pos + step))).ItemCode
+        )
+    ),
+    currentItemCode
+);
+
+
+// ============================================================================
+// 15B. DRF FORM PICKER + WALL CALCULATION (per README requirements)
+// The DRF Type (A or B) comes from the DRF form the inspector picks for a
+// defect row, not from the parent task and not from the MOD.
+// ============================================================================
+
+U035DrfCatalogRecordType := Type({
+    Title: Text,
+    DrfType: Text
+});
+U035DrfCatalogTableType := Type([U035DrfCatalogRecordType]);
+
+// All DRF forms for the current MOD, with their types.
+// Source: 'U035 Impact Requirements'. MOD column: display name Mod (schema impact_Mod).
+// The Filter is a plain column = value comparison so Dataverse evaluates it
+// server-side (delegable). Do not wrap the column in IfError / Value / Text here:
+// that makes the Filter non-delegable and brings back the delegation warning.
+// Mod is a TEXT column, so it is compared to text. Both spellings are accepted
+// ("1" and "01"; 70 and 80 are the same either way). Plain = comparisons joined by ||
+// stay delegable. If the table only ever uses one spelling you can drop the other.
+nfU035DrfCatalog = ForAll(
+    Filter(
+        'U035 Impact Requirements',
+        ThisRecord.Mod = Text(nfModNumber) ||
+        ThisRecord.Mod = Text(nfModNumber, "00")
+    ),
+    {
+        Title: ThisRecord.'UROMODDRF Title',
+        DrfType: ThisRecord.'DRF Type'
+    }
+);
+
+// Topic keyword rules, checked in this order: Subtask rules first, then Parent rules.
+// Add a row here to teach the picker a new equipment phrase.
+nfU035DrfKeywordRules = Table(
+    { Level: "Subtask", Phrase: "slide valve", Keyword: "slide valve" },
+    { Level: "Subtask", Phrase: "breech door", Keyword: "breech door" },
+    { Level: "Subtask", Phrase: "muzzle door", Keyword: "muzzle door" },
+    { Level: "Subtask", Phrase: "flood and drain", Keyword: "torpedo tube" },
+    { Level: "Subtask", Phrase: "connections", Keyword: "torpedo tube" },
+    { Level: "Parent", Phrase: "torpedo tube", Keyword: "torpedo tube" }
+);
+
+// Blank result = no rule matched, so the picker falls back to every DRF form.
+nfU035DrfKeyword(parentCode: Text, itemCode: Text): Text =
+With(
+    {
+        sub: Lower(Coalesce(LookUp(nfU035EglSubtasks(parentCode), ItemCode = itemCode).ItemText, "")),
+        par: Lower(Coalesce(nfU035Parent(parentCode).DRFInspection, ""))
+    },
+    Coalesce(
+        First(Filter(nfU035DrfKeywordRules, Level = "Subtask" && Phrase in sub)).Keyword,
+        First(Filter(nfU035DrfKeywordRules, Level = "Parent" && Phrase in par)).Keyword,
+        ""
+    )
+);
+
+nfU035DrfOptions(parentCode: Text, itemCode: Text, showAll: Boolean): U035DrfCatalogTableType =
+With(
+    { kw: nfU035DrfKeyword(parentCode, itemCode) },
+    SortByColumns(
+        Filter(
+            nfU035DrfCatalog,
+            showAll || IsBlank(kw) || kw in Lower(Title)
+        ),
+        "Title",
+        SortOrder.Ascending
+    )
+);
+
+// ----------------------------------------------------------------------------
+// WALL CALCULATION PRECISION  (README: keep full precision)
+// The stored value is never rounded. To change decimals later, edit ONE of these:
+//   * Display only (box text):   nfU035WallCalcDisplay below, e.g. Text(Round(v, 2))
+//   * Stored value too:          wrap the results in nfU035DrfCalc below with Round(..., 2)
+//   * Edit-detection tolerance:  nfU035WallCalcTolerance below (keep it smaller than
+//     the smallest step you display, or typing the same number will look like an edit)
+// ----------------------------------------------------------------------------
+nfU035WallCalcTolerance = 0.0000001;
+
+nfU035WallCalcDisplay(v: Number): Text =
+Text(v);
+
+// Type A = % wall reduction, Type B = actual wall remaining. Blank type = 0.
+nfU035DrfCalc(drfType: Text, b: Number, c: Number): Number =
+If(
+    drfType = "A", If(c <> 0, (b / c) * 100, 0),
+    drfType = "B", c - b,
+    0
+);
+
+nfU035DrfCalcLabel(drfType: Text): Text =
+If(
+    drfType = "A", "% Wall Reduction B/C X 100",
+    drfType = "B", "Actual Wall Remaining 'A' ('C'-'B')",
+    "Wall Calculation"
+);
+
+
+// ============================================================================
+// 17. PERSISTENCE (Dataverse rows; one Results row per SUBTASK)
+//
+//   U035 Inspection Results      one row per subtask
+//       'Parent Code' / 'Item Code'   NEW text columns: which EGL task / subtask
+//       'DRF Inspection'              primary name: "<ItemCode> <ItemText>" (readability only)
+//       'Date of Inspection', 'As Found CAT', 'Visual Defects', 'DRF Required',
+//       'Final CAT', Remarks          the six subtask answers
+//       Signature                     the parent task's signature, repeated on every row
+//   U035 Inspection DRF Results  defect rows, linked by the 'DRF Inspection' lookup to
+//                                their subtask row. Primary name = "<DRF title> | Type <A|B>".
+//
+// Rows with a blank 'Parent Code' (old flow) are ignored on load and never deleted.
+// Not stored (no column): the "Wall Calculation edited" flag. Loaded rows are "auto".
+// ============================================================================
+
+nfU035LoadSubtasks(impactPk: GUID): U035SubtaskResultTableType =
+Filter(
+    ForAll(
+        Filter(
+            'U035 Inspection Results',
+            'URO Impact Item'.'PK - URO Impact Item' = impactPk
+        ) As r,
+        {
+            ParentCode: Coalesce(r.'Parent Code', ""),
+            ItemCode: Coalesce(r.'Item Code', ""),
+            ItemText: Coalesce(
+                LookUp(
+                    nfU035EglSubtasks(Coalesce(r.'Parent Code', "")),
+                    ItemCode = Coalesce(r.'Item Code', "")
+                ).ItemText,
+                ""
+            ),
+            DOI: r.'Date of Inspection',
+            AsFoundCAT: Coalesce(r.'As Found CAT', ""),
+            VisualDefects: Coalesce(r.'Visual Defects', ""),
+            DRFRequired: Coalesce(r.'DRF Required', ""),
+            FinalCAT: Coalesce(r.'Final CAT', ""),
+            Remarks: Coalesce(r.Remarks, ""),
+            Signature: Coalesce(r.Signature, "")
+        }
+    ),
+    !IsBlank(ParentCode)
+);
+
+nfU035LoadDrfRows(impactPk: GUID): U035SubtaskDrfTableType =
+Filter(
+    ForAll(
+        Filter(
+            'U035 Inspection DRF Results',
+            'DRF Inspection'.'URO Impact Item'.'PK - URO Impact Item' = impactPk
+        ) As r,
+        {
+            DrfId: Text(r.'PK - U035 Inspection DRF Result'),
+            ParentCode: Coalesce(r.'DRF Inspection'.'Parent Code', ""),
+            ItemCode: Coalesce(r.'DRF Inspection'.'Item Code', ""),
+            DrfTitle: First(Split(Coalesce(r.'DRF Title and Type (A or B)', ""), " | Type ")).Value,
+            DrfType: If(
+                " | Type " in Coalesce(r.'DRF Title and Type (A or B)', ""),
+                Last(Split(r.'DRF Title and Type (A or B)', " | Type ")).Value,
+                ""
+            ),
+            WallCalcManual: false,
+            DefectLocation: Coalesce(r.'Defect Location', ""),
+            DefectDescription: Coalesce(r.'Defect Description Length X Width', ""),
+            FaceDefectOnly: Coalesce(r.'Face Defect Only', false),
+            DepthB: Coalesce(r.'Depth B', 0),
+            MinimumWallC: Coalesce(r.'Minimum Wall Thickness C', 0),
+            WallCalculation: Coalesce(r.'Wall Calculation', 0),
+            AdjacentWallThickness: Coalesce(r.'Adjacent Unaffected Wall Thickness', ""),
+            AmountBelowMin: Coalesce(r.'Amount Below Dwg Min', 0),
+            MeasurementMethod: Coalesce(r.'Measurement Method', ""),
+            Notes: Coalesce(r.Notes, "")
+        }
+    ),
+    !IsBlank(ParentCode)
+);
+
+// Worklist rows = the distinct tasks found in the loaded subtask rows.
+// A task counts as signed only when every one of its rows carries a signature.
+nfU035ParentsFromAnswers(impactPk: GUID): U035InspectionResultTableType =
+ForAll(
+    Distinct(colSubtaskResults, ParentCode) As d,
+    {
+        InspectionResultId: Blank(),
+        ImpactRequirementId: Blank(),
+        UROImpactItemId: impactPk,
+        OrderNumber: d.Value,
+        DRFInspection: Coalesce(
+            LookUp(nfU035SelectableEglParents, ParentCode = d.Value).ParentTitle,
+            d.Value
+        ),
+        ReferenceNotes: "",
+        Remarks: "",
+        Guidelines: "",
+        DRFType: "",
+        DOI: Blank(),
+        Signature: If(
+            CountRows(
+                Filter(colSubtaskResults, ParentCode = d.Value && IsBlank(Trim(Signature)))
+            ) = 0,
+            First(Filter(colSubtaskResults, ParentCode = d.Value)).Signature,
+            ""
+        ),
+        AsFoundCAT: "",
+        VisualDefects: "",
+        AdditionalDate: Blank(),
+        AdditionalName: "",
+        AdditionalSignature: false,
+        DRFRequired: "",
+        FinalCAT: "",
+        IsDirty: false
+    }
+);
+
+LoadU035Results(): Boolean =
+{
+    IfError(
+        With(
+            { impactPk: nfRecordItem.'PK - URO Impact Item' },
+            ClearCollect(colSubtaskResults, nfU035LoadSubtasks(impactPk));
+            ClearCollect(colSubtaskDrf, nfU035LoadDrfRows(impactPk));
+            ClearCollect(colParentResults, nfU035ParentsFromAnswers(impactPk));
+            ClearCollect(colParentResultsBackup, colParentResults);
+            Set(varU035HasRemovals, false);
+            true
+        ),
+        nfSendToast("Load failed", "The saved inspection could not be loaded.", 6000, "Error");
+        false
+    )
+};
+
+SaveU035Results(): Boolean =
+{
+    With(
+        { impactPk: nfRecordItem.'PK - URO Impact Item' },
+        Clear(colU035SaveErrors);
+        If(
+            !nfInWorkingStatus,
+            Collect(colU035SaveErrors, { Key: "READ_ONLY" }),
+
+            // 1. One Results row per subtask of every changed task (upsert).
+            ForAll(
+                Filter(colParentResults, IsDirty) As P,
+                ForAll(
+                    nfU035EglSubtasks(P.OrderNumber) As S,
+                    EnsureU035Sub(P.OrderNumber, S.ItemCode);
+                    With(
+                        {
+                            a: nfU035Sub(P.OrderNumber, S.ItemCode),
+                            existing: LookUp(
+                                'U035 Inspection Results',
+                                'URO Impact Item'.'PK - URO Impact Item' = impactPk &&
+                                'Parent Code' = P.OrderNumber &&
+                                'Item Code' = S.ItemCode
+                            )
+                        },
+                        IfError(
+                            Patch(
+                                'U035 Inspection Results',
+                                If(
+                                    IsBlank(existing),
+                                    Defaults('U035 Inspection Results'),
+                                    existing
+                                ),
+                                {
+                                    'URO Impact Item': nfRecordItem,
+                                    'Parent Code': P.OrderNumber,
+                                    'Item Code': S.ItemCode,
+                                    'DRF Inspection': Left(S.ItemCode & " " & S.ItemText, 100),
+                                    'Date of Inspection': a.DOI,
+                                    'As Found CAT': a.AsFoundCAT,
+                                    'Visual Defects': a.VisualDefects,
+                                    'DRF Required': a.DRFRequired,
+                                    'Final CAT': a.FinalCAT,
+                                    Remarks: a.Remarks,
+                                    Signature: P.Signature
+                                }
+                            ),
+                            Collect(colU035SaveErrors, { Key: P.OrderNumber & "/" & S.ItemCode })
+                        )
+                    )
+                )
+            );
+
+            // 2. DRF rows: replace each changed subtask's rows (only when DRF Required = Yes).
+            If(
+                IsEmpty(colU035SaveErrors),
+                ForAll(
+                    Filter(colParentResults, IsDirty) As P,
+                    ForAll(
+                        nfU035EglSubtasks(P.OrderNumber) As S,
+                        With(
+                            {
+                                res: LookUp(
+                                    'U035 Inspection Results',
+                                    'URO Impact Item'.'PK - URO Impact Item' = impactPk &&
+                                    'Parent Code' = P.OrderNumber &&
+                                    'Item Code' = S.ItemCode
+                                )
+                            },
+                            RemoveIf(
+                                'U035 Inspection DRF Results',
+                                'DRF Inspection'.'PK - U035 Inspection Result' = res.'PK - U035 Inspection Result'
+                            );
+                            ForAll(
+                                Filter(
+                                    colSubtaskDrf,
+                                    ParentCode = P.OrderNumber &&
+                                    ItemCode = S.ItemCode &&
+                                    nfU035Sub(P.OrderNumber, S.ItemCode).DRFRequired = "Yes"
+                                ) As D,
+                                IfError(
+                                    Patch(
+                                        'U035 Inspection DRF Results',
+                                        Defaults('U035 Inspection DRF Results'),
+                                        {
+                                            'DRF Inspection': res,
+                                            'DRF Title and Type (A or B)': Left(D.DrfTitle & " | Type " & D.DrfType, 100),
+                                            'Defect Location': D.DefectLocation,
+                                            'Defect Description Length X Width': D.DefectDescription,
+                                            'Face Defect Only': D.FaceDefectOnly,
+                                            'Depth B': D.DepthB,
+                                            'Minimum Wall Thickness C': D.MinimumWallC,
+                                            'Wall Calculation': D.WallCalculation,
+                                            'Adjacent Unaffected Wall Thickness': D.AdjacentWallThickness,
+                                            'Amount Below Dwg Min': If(D.DrfType = "B", D.AmountBelowMin, Blank()),
+                                            'Measurement Method': D.MeasurementMethod,
+                                            Notes: D.Notes
+                                        }
+                                    ),
+                                    Collect(colU035SaveErrors, { Key: "DRF " & P.OrderNumber & "/" & S.ItemCode })
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+
+            // 3. Tasks removed from the worklist: delete their rows (DRF rows first).
+            If(
+                IsEmpty(colU035SaveErrors),
+                ForAll(
+                    Filter(
+                        'U035 Inspection Results',
+                        'URO Impact Item'.'PK - URO Impact Item' = impactPk
+                    ) As r,
+                    If(
+                        !IsBlank(r.'Parent Code') &&
+                        IsBlank(LookUp(colParentResults, OrderNumber = r.'Parent Code')),
+                        RemoveIf(
+                            'U035 Inspection DRF Results',
+                            'DRF Inspection'.'PK - U035 Inspection Result' = r.'PK - U035 Inspection Result'
+                        );
+                        RemoveIf(
+                            'U035 Inspection Results',
+                            'PK - U035 Inspection Result' = r.'PK - U035 Inspection Result'
+                        )
+                    )
+                )
+            )
+        );
+        If(
+            IsEmpty(colU035SaveErrors),
+            LoadU035Results(),
+            false
+        )
+    )
+};
+
+// ============================================================================
+// 16. JSON OBJECT FOR THE ENTIRE RESULT SET
+// Parent task -> Subtasks (screening answers) -> DrfRows (only when
+// DRFRequired = "Yes"). Call it when you need the string, e.g.
+//     Set(varResultsJson, nfU035BuildResultsJson())
+// ============================================================================
+
+nfU035BuildResultsJson(): Text =
+JSON(
+    {
+        Version: 1,
+        ReportId: nfReportGUID,
+        ModNumber: nfModNumber,
+        GeneratedOn: Now(),
+        Tasks: ForAll(
+            colParentResults As P,
+            {
+                ParentCode: P.OrderNumber,
+                Title: P.DRFInspection,
+                Signature: P.Signature,
+                Complete: nfU035ParentComplete(P.OrderNumber),
+                Subtasks: ForAll(
+                    Filter(colSubtaskResults, ParentCode = P.OrderNumber) As S,
+                    {
+                        ItemCode: S.ItemCode,
+                        ItemText: S.ItemText,
+                        DOI: S.DOI,
+                        AsFoundCAT: S.AsFoundCAT,
+                        VisualDefects: S.VisualDefects,
+                        DRFRequired: S.DRFRequired,
+                        FinalCAT: S.FinalCAT,
+                        Remarks: S.Remarks,
+                        Complete: nfU035SubComplete(S.ParentCode, S.ItemCode),
+                        DrfRows: ForAll(
+                            Filter(
+                                colSubtaskDrf,
+                                S.DRFRequired = "Yes" &&
+                                ParentCode = S.ParentCode &&
+                                ItemCode = S.ItemCode
+                            ) As D,
+                            {
+                                DrfId: D.DrfId,
+                                DrfTitle: D.DrfTitle,
+                                DrfType: D.DrfType,
+                                DefectLocation: D.DefectLocation,
+                                DefectDescription: D.DefectDescription,
+                                FaceDefectOnly: D.FaceDefectOnly,
+                                DepthB: D.DepthB,
+                                MinimumWallC: D.MinimumWallC,
+                                WallCalculation: D.WallCalculation,
+                                WallCalcManual: D.WallCalcManual,
+                                AdjacentWallThickness: D.AdjacentWallThickness,
+                                AmountBelowMin: If(D.DrfType = "B", D.AmountBelowMin, Blank()),
+                                MeasurementMethod: D.MeasurementMethod,
+                                Notes: D.Notes
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+    JSONFormat.IndentFour
+);

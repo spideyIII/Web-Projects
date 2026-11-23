@@ -73,6 +73,15 @@ Screens:
           Clear(colParentResults);
           LoadU035Results();
           ClearCollect(colRefImages, nfInspectionImages);
+          If(
+              nfU035EglBlankCodes > 0,
+              nfSendToast(
+                  "Equipment Guide data incomplete",
+                  $"{nfU035EglBlankCodes} guide row(s) for MOD {nfModNumber} have no Item Code. The row Name is used instead.",
+                  9000,
+                  "Warning"
+              )
+          );
           Set(
               _spinner,
               false

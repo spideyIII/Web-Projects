@@ -368,13 +368,21 @@ nfEquipmentGuideList = ForAll(
         ModNumber: ThisRecord.'Mod Number',
         ParentCode: ThisRecord.'Parent Code',
         ParentTitle: ThisRecord.'Parent Title',
-        ItemCode: ThisRecord.'Item Code',
-        ItemText: ThisRecord.'Item Text',
-        ItemType: ThisRecord.'Item Type',
+        // ItemCode is the KEY for every subtask answer and DRF row. If a row's Item Code /
+        // Item Text is blank in Dataverse, fall back to the row Name (always present and unique,
+        // e.g. M70-1.A.1) so subtasks never collapse onto one blank key.
+        ItemCode: Coalesce(ThisRecord.'Item Code', ThisRecord.Name),
+        ItemText: Coalesce(ThisRecord.'Item Text', ThisRecord.Name),
+        ItemType: Coalesce(ThisRecord.'Item Type', If(ThisRecord.IsSelectable, "Parent", "Child")),
+        HasItemCode: !IsBlank(ThisRecord.'Item Code'),
         SortKey: ThisRecord.'Sort Key',
         IsSelectable: ThisRecord.IsSelectable
     }
 );
+
+// Rows for the current MOD whose Item Code is blank in the data (they still work via the
+// Name fallback above). Used by OnVisible to warn about incomplete guide data.
+nfU035EglBlankCodes = CountRows(Filter(nfEquipmentGuideList, !HasItemCode));
 
 
 // ============================================================================
@@ -499,10 +507,6 @@ AddU035EglTaskToWorklist(parentCode: Text): Boolean =
             ForAll(
                 nfU035EglSubtasks(selectedParent.ParentCode) As s,
                 EnsureU035Sub(selectedParent.ParentCode, s.ItemCode)
-            );
-            ClearCollect(
-                colParentResultsBackup,
-                colParentResults
             );
             nfSendToast(
                 "Task added",
@@ -982,7 +986,6 @@ LoadU035Results(): Boolean =
             ClearCollect(colSubtaskResults, nfU035LoadSubtasks(impactPk));
             ClearCollect(colSubtaskDrf, nfU035LoadDrfRows(impactPk));
             ClearCollect(colParentResults, nfU035ParentsFromAnswers(impactPk));
-            ClearCollect(colParentResultsBackup, colParentResults);
             Set(varU035HasRemovals, false);
             true
         ),

@@ -1873,15 +1873,16 @@ Screens:
                                                             Size: =11
                                                             Text: ="Date of Inspection"
                                                       - txtSubDoi:
-                                                          Control: ModernTextInput@1.1.2
+                                                          Control: ModernDatePicker@1.0.2
                                                           Properties:
                                                             AccessibleLabel: ="Date of Inspection"
-                                                            Default: =If(IsBlank(nfU035Sub(_rowKey, _subKey).DOI), "", Text(nfU035Sub(_rowKey, _subKey).DOI, "[$-en-US]mm/dd/yyyy"))
-                                                            Height: =36
+                                                            DefaultDate: =nfU035Sub(_rowKey, _subKey).DOI
                                                             DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                            Format: ="mm/dd/yyyy"
+                                                            Height: =36
                                                             OnChange: |-
-                                                              =With({newDate: IfError(DateValue(Self.Text, "en-US"), Blank())}, If(Text(newDate, "yyyy-mm-dd") <> Text(nfU035Sub(_rowKey, _subKey).DOI, "yyyy-mm-dd"), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {DOI: newDate}); MarkU035Dirty(_rowKey)))
-                                                            Placeholder: ="mm/dd/yyyy"
+                                                              =If(Coalesce(Self.SelectedDate, Date(1900, 1, 1)) <> Coalesce(nfU035Sub(_rowKey, _subKey).DOI, Date(1900, 1, 1)), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {DOI: Self.SelectedDate}); MarkU035Dirty(_rowKey))
+                                                            Placeholder: ="Select date"
                                                 - vctrAsFoundField:
                                                     Control: GroupContainer@1.5.0
                                                     Variant: AutoLayout
@@ -1923,15 +1924,43 @@ Screens:
                                                             Color: =thmU035.TextMuted
                                                             Size: =11
                                                             Text: ="Visual Defects"
-                                                      - txtSubVisualDefects:
-                                                          Control: ModernTextInput@1.1.2
+                                                      - hctrSubVisualToggle:
+                                                          Control: GroupContainer@1.5.0
+                                                          Variant: AutoLayout
                                                           Properties:
-                                                            AccessibleLabel: ="Visual Defects"
-                                                            Default: =nfU035Sub(_rowKey, _subKey).VisualDefects
+                                                            DropShadow: =DropShadow.None
                                                             Height: =36
-                                                            DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
-                                                            OnChange: |-
-                                                              =If(Self.Text <> Coalesce(nfU035Sub(_rowKey, _subKey).VisualDefects, ""), Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {VisualDefects: Self.Text}); MarkU035Dirty(_rowKey))
+                                                            LayoutDirection: =LayoutDirection.Horizontal
+                                                            LayoutGap: =8
+                                                          Children:
+                                                            - btnSubVisualYes:
+                                                                Control: ModernButton@1.0.0
+                                                                Properties:
+                                                                  AccessibleLabel: |-
+                                                                    ="Visual defects: Yes"
+                                                                  Appearance: =If(nfU035Sub(_rowKey, _subKey).VisualDefects = "Yes", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                                  DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                                  FontWeight: =""
+                                                                  Height: =36
+                                                                  OnSelect: |-
+                                                                    =Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {VisualDefects: "Yes"}); MarkU035Dirty(_rowKey)
+                                                                  Size: =12
+                                                                  Text: ="Yes"
+                                                                  Width: =80
+                                                            - btnSubVisualNo:
+                                                                Control: ModernButton@1.0.0
+                                                                Properties:
+                                                                  AccessibleLabel: |-
+                                                                    ="Visual defects: No"
+                                                                  Appearance: =If(nfU035Sub(_rowKey, _subKey).VisualDefects = "No", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                                  DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                                  FontWeight: =""
+                                                                  Height: =36
+                                                                  OnSelect: |-
+                                                                    =Patch(colSubtaskResults, LookUp(colSubtaskResults, ParentCode = _rowKey && ItemCode = _subKey), {VisualDefects: "No"}); MarkU035Dirty(_rowKey)
+                                                                  Size: =12
+                                                                  Text: ="No"
+                                                                  Width: =80
                                                 - vctrDrfRequiredField:
                                                     Control: GroupContainer@1.5.0
                                                     Variant: AutoLayout
@@ -1976,7 +2005,7 @@ Screens:
                                                                 Properties:
                                                                   AccessibleLabel: |-
                                                                     ="DRF required: No"
-                                                                  Appearance: =If(!(nfU035Sub(_rowKey, _subKey).DRFRequired = "Yes"), ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                                                  Appearance: =If(nfU035Sub(_rowKey, _subKey).DRFRequired = "No", ButtonAppearance.Primary, ButtonAppearance.Secondary)
                                                                   DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                                   FontWeight: =""
                                                                   Height: =36

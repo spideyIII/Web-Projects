@@ -18,11 +18,13 @@ each CSV column to the column with the same display name. Two-option columns (`I
 | Test | Rows that cover it |
 |---|---|
 | Worklist picker and subtasks | Two parents (1.A TORPEDO TUBES, 1.B HULL VALVES), 4 and 2 subtasks, MOD 70 |
-| DRF keyword filter | Subtask 1.A.(2) "slide valve", 1.A.(3) "breech door", 1.A.(4) "muzzle door" each match one DRF title |
-| Parent-level keyword rule | Any 1.A subtask not matching a phrase still falls back to "torpedo tube" (parent title) |
-| Fallback to all DRF forms | 1.B subtasks match no keyword, so every MOD 70 DRF form is listed |
-| Wall Calculation, Type A | `[TEST] TORPEDO TUBE SLIDE VALVE DEFECTS`, `[TEST] BREECH DOOR DEFECTS` |
-| Wall Calculation, Type B + Amount Below Min | `[TEST] TORPEDO TUBE DEFECTS ...`, `[TEST] MUZZLE DOOR DEFECTS`, `[TEST] HULL VALVE DEFECTS` |
+| DRF form per EGL item | `U035_Impact_Requirements_TEST.csv` holds the real DRF title lists for MOD 1, 70 and 80 (from the README EGL -> DRF diagrams), each prefixed `[TEST]` |
+| Slide valve subtask (MOD 70) | 1.A.(2) "slide valve" -> DRF 1 `Torpedo Tube Slide Valve Defects` only |
+| Other torpedo tube subtasks (MOD 70) | 1.A.(1), (3), (4) -> DRF 2 `Torpedo Tube Defects (including connections...)` only |
+| No rule match | 1.B HULL VALVES is not in the diagrams, so every MOD 70 DRF form is listed |
+| Wall Calculation, Type A / B | Types are placeholders (odd DRF number = A, even = B), not the real types |
+
+The picker hint shows "EGL diagram: DRF n" so each result can be checked against the diagram.
 
 ## Things to set up by hand
 - **URO Impact Item**: the app opens the `URO Impact Items` record in the `recordId` parameter. Its

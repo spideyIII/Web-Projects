@@ -2699,14 +2699,14 @@ Screens:
                                               Control: ModernText@1.0.0
                                               Properties:
                                                 AccessibleLabel: |-
-                                                  =If(_drfShowAll || IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "Showing all DRF forms", $"Filtered by topic: {nfU035DrfKeyword(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} match(es)")
+                                                  =If(_drfShowAll, "Showing all DRF forms for this MOD", IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "No EGL-diagram match for this subtask - showing all DRF forms", CountRows(Filter(nfU035DrfCatalog, nfU035DrfKeyword(_rowKey, _subKey) in Lower(Title))) = 0, "No DRF title contains \"" & nfU035DrfKeyword(_rowKey, _subKey) & "\" - showing all DRF forms", $"EGL diagram: DRF {nfU035DrfDiagramNo(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} matching form(s)")
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 AutoHeight: =true
                                                 Color: =thmU035.TextMuted
                                                 Height: =18
                                                 Size: =11
                                                 Text: |-
-                                                  =If(_drfShowAll || IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "Showing all DRF forms", $"Filtered by topic: {nfU035DrfKeyword(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} match(es)")
+                                                  =If(_drfShowAll, "Showing all DRF forms for this MOD", IsBlank(nfU035DrfKeyword(_rowKey, _subKey)), "No EGL-diagram match for this subtask - showing all DRF forms", CountRows(Filter(nfU035DrfCatalog, nfU035DrfKeyword(_rowKey, _subKey) in Lower(Title))) = 0, "No DRF title contains \"" & nfU035DrfKeyword(_rowKey, _subKey) & "\" - showing all DRF forms", $"EGL diagram: DRF {nfU035DrfDiagramNo(_rowKey, _subKey)}  ·  {CountRows(nfU035DrfOptions(_rowKey, _subKey, _drfShowAll))} matching form(s)")
                                           - galDrfFormOptions:
                                               Control: Gallery@2.15.0
                                               Variant: Vertical

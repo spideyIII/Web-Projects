@@ -796,18 +796,47 @@ nfU035DrfCatalog = ForAll(
     }
 );
 
-// Topic keyword rules, checked in this order: Subtask rules first, then Parent rules.
-// Add a row here to teach the picker a new equipment phrase.
-nfU035DrfKeywordRules = Table(
-    { Level: "Subtask", Phrase: "slide valve", Keyword: "slide valve" },
-    { Level: "Subtask", Phrase: "breech door", Keyword: "breech door" },
-    { Level: "Subtask", Phrase: "muzzle door", Keyword: "muzzle door" },
-    { Level: "Subtask", Phrase: "flood and drain", Keyword: "torpedo tube" },
-    { Level: "Subtask", Phrase: "connections", Keyword: "torpedo tube" },
-    { Level: "Parent", Phrase: "torpedo tube", Keyword: "torpedo tube" }
+// ----------------------------------------------------------------------------
+// WHICH DRF FORM BELONGS TO WHICH EGL ITEM
+// Source: the "URO MRC 035" EGL -> DRF diagrams (Mod 1, Mod 70, Mod 80) in the README.
+// Each row says: for this MOD (0 = any), when the PARENT task title contains ParentPhrase
+// and the SUBTASK text contains TaskPhrase (blank = any subtask), the DRF form is the one
+// whose title contains Keyword. DrfNo is the DRF number printed in the diagram (shown in
+// the picker hint so the result can be checked against the diagram).
+// First matching row wins, so list the specific subtask rows before the general ones.
+// Phrases and keywords are lower case. A DRF title only needs to CONTAIN the keyword.
+// ----------------------------------------------------------------------------
+nfU035DrfRules = Table(
+    // ---- MOD 1 -------------------------------------------------------------
+    { ModNo: 1, ParentPhrase: "torpedo tubes", TaskPhrase: "slide valve", Keyword: "slide valve defects", DrfNo: 3 },
+    { ModNo: 1, ParentPhrase: "torpedo tubes", TaskPhrase: "", Keyword: "torpedo tube defects", DrfNo: 1 },
+    { ModNo: 1, ParentPhrase: "ejection cylinder", TaskPhrase: "", Keyword: "ejection cylinder defects", DrfNo: 4 },
+    { ModNo: 1, ParentPhrase: "tdu", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 5 },
+    { ModNo: 1, ParentPhrase: "trash", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 5 },
+    { ModNo: 1, ParentPhrase: "signal ejector", TaskPhrase: "impulse", Keyword: "impulse and drain piping defects", DrfNo: 2 },
+    { ModNo: 1, ParentPhrase: "signal ejector", TaskPhrase: "drain", Keyword: "impulse and drain piping defects", DrfNo: 2 },
+    { ModNo: 1, ParentPhrase: "signal ejector", TaskPhrase: "", Keyword: "launcher tube defects", DrfNo: 6 },
+    // ---- MOD 70 ------------------------------------------------------------
+    { ModNo: 70, ParentPhrase: "torpedo tubes", TaskPhrase: "slide valve", Keyword: "slide valve defects", DrfNo: 1 },
+    { ModNo: 70, ParentPhrase: "torpedo tubes", TaskPhrase: "", Keyword: "torpedo tube defects", DrfNo: 2 },
+    { ModNo: 70, ParentPhrase: "ejection pump water cylinder", TaskPhrase: "", Keyword: "ejection pump water cylinder defects", DrfNo: 3 },
+    { ModNo: 70, ParentPhrase: "trash", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 4 },
+    { ModNo: 70, ParentPhrase: "tdu", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 4 },
+    { ModNo: 70, ParentPhrase: "countermeasure launcher", TaskPhrase: "", Keyword: "countermeasure launcher", DrfNo: 5 },
+    { ModNo: 70, ParentPhrase: "icl", TaskPhrase: "", Keyword: "countermeasure launcher", DrfNo: 5 },
+    // ---- MOD 80 ------------------------------------------------------------
+    { ModNo: 80, ParentPhrase: "torpedo tubes", TaskPhrase: "slide valve", Keyword: "slide valve defects", DrfNo: 1 },
+    { ModNo: 80, ParentPhrase: "torpedo tubes", TaskPhrase: "", Keyword: "torpedo tube defects", DrfNo: 2 },
+    { ModNo: 80, ParentPhrase: "turbine ejection pump", TaskPhrase: "", Keyword: "turbine ejection pump", DrfNo: 3 },
+    { ModNo: 80, ParentPhrase: "trash", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 4 },
+    { ModNo: 80, ParentPhrase: "tdu", TaskPhrase: "", Keyword: "trash ejector barrel", DrfNo: 4 },
+    { ModNo: 80, ParentPhrase: "ejection pump water cylinder", TaskPhrase: "", Keyword: "launcher ejection pump", DrfNo: 6 },
+    { ModNo: 80, ParentPhrase: "ial barrel", TaskPhrase: "", Keyword: "internal auxiliary launcher barrel", DrfNo: 5 },
+    { ModNo: 80, ParentPhrase: "ial) barrel", TaskPhrase: "", Keyword: "internal auxiliary launcher barrel", DrfNo: 5 },
+    { ModNo: 80, ParentPhrase: "auxiliary launcher barrel", TaskPhrase: "", Keyword: "internal auxiliary launcher barrel", DrfNo: 5 }
 );
 
-// Blank result = no rule matched, so the picker falls back to every DRF form.
+// The matching rule's keyword for one subtask ("" = no rule matches, so all DRF forms are offered).
 nfU035DrfKeyword(parentCode: Text, itemCode: Text): Text =
 With(
     {
@@ -815,22 +844,52 @@ With(
         par: Lower(Coalesce(nfU035Parent(parentCode).DRFInspection, ""))
     },
     Coalesce(
-        First(Filter(nfU035DrfKeywordRules, Level = "Subtask" && Phrase in sub)).Keyword,
-        First(Filter(nfU035DrfKeywordRules, Level = "Parent" && Phrase in par)).Keyword,
+        First(
+            Filter(
+                nfU035DrfRules,
+                (ModNo = 0 || ModNo = nfModNumber) &&
+                ParentPhrase in par &&
+                (IsBlank(TaskPhrase) || TaskPhrase in sub)
+            )
+        ).Keyword,
         ""
     )
 );
 
+// The DRF number printed in the diagram for that subtask (0 = none).
+nfU035DrfDiagramNo(parentCode: Text, itemCode: Text): Number =
+With(
+    {
+        sub: Lower(Coalesce(LookUp(nfU035EglSubtasks(parentCode), ItemCode = itemCode).ItemText, "")),
+        par: Lower(Coalesce(nfU035Parent(parentCode).DRFInspection, ""))
+    },
+    Coalesce(
+        First(
+            Filter(
+                nfU035DrfRules,
+                (ModNo = 0 || ModNo = nfModNumber) &&
+                ParentPhrase in par &&
+                (IsBlank(TaskPhrase) || TaskPhrase in sub)
+            )
+        ).DrfNo,
+        0
+    )
+);
+
+// DRF forms offered for a subtask. Falls back to every form of the MOD when no rule
+// matches or no title in the data contains the rule's keyword, so the inspector is never stuck.
 nfU035DrfOptions(parentCode: Text, itemCode: Text, showAll: Boolean): U035DrfCatalogTableType =
 With(
-    { kw: nfU035DrfKeyword(parentCode, itemCode) },
-    SortByColumns(
-        Filter(
-            nfU035DrfCatalog,
-            showAll || IsBlank(kw) || kw in Lower(Title)
-        ),
-        "Title",
-        SortOrder.Ascending
+    {
+        kw: nfU035DrfKeyword(parentCode, itemCode)
+    },
+    With(
+        { matched: Filter(nfU035DrfCatalog, kw in Lower(Title)) },
+        SortByColumns(
+            If(showAll || IsBlank(kw) || IsEmpty(matched), nfU035DrfCatalog, matched),
+            "Title",
+            SortOrder.Ascending
+        )
     )
 );
 

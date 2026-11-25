@@ -1,6 +1,18 @@
 Primary name column,Mod,UROMODDRF Title,DRF Type
-[TEST] 70-1,70,[TEST] TORPEDO TUBE SLIDE VALVE DEFECTS,A
-[TEST] 70-2,70,[TEST] TORPEDO TUBE DEFECTS (INCLUDING CONNECTIONS 1 INCH AND GREATER),B
-[TEST] 70-3,70,[TEST] BREECH DOOR DEFECTS,A
-[TEST] 70-4,70,[TEST] MUZZLE DOOR DEFECTS,B
-[TEST] 70-5,70,[TEST] HULL VALVE DEFECTS,B
+[TEST] M1-DRF1,1,"[TEST] Torpedo Tube Defects (including connections 1"" and greater)",A
+[TEST] M1-DRF2,1,[TEST] Signal Ejector/Launcher System Impulse and Drain Piping Defects,B
+[TEST] M1-DRF3,1,[TEST] Torpedo Tube Slide Valve Defects,A
+[TEST] M1-DRF4,1,[TEST] Torpedo Ejection Cylinder Defects,B
+[TEST] M1-DRF5,1,"[TEST] Trash Ejector Barrel (TDU) (including connections 1"" and greater)",A
+[TEST] M1-DRF6,1,[TEST] Signal Ejector/ Launcher Tube Defects,B
+[TEST] M70-DRF1,70,[TEST] Torpedo Tube Slide Valve Defects,A
+[TEST] M70-DRF2,70,"[TEST] Torpedo Tube Defects (including connections 1"" and greater)",B
+[TEST] M70-DRF3,70,[TEST] Torpedo Tube Ejection Pump Water Cylinder Defects,A
+[TEST] M70-DRF4,70,"[TEST] Trash Ejector Barrel (TDU) (including connections 1"" and greater)",B
+[TEST] M70-DRF5,70,"[TEST] Internal Countermeasure Launcher (ICL) Barrel Defects (including connections 1"" and greater)",A
+[TEST] M80-DRF1,80,[TEST] Torpedo Tube Slide Valve Defects,A
+[TEST] M80-DRF2,80,"[TEST] Torpedo Tube Defects (including connections 1"" and greater)",B
+[TEST] M80-DRF3,80,[TEST] Torpedo Turbine Ejection Pump Water Cylinder,A
+[TEST] M80-DRF4,80,"[TEST] Trash Ejector Barrel (TDU) (including connections 1"" and greater)",B
+[TEST] M80-DRF5,80,"[TEST] Internal Auxiliary Launcher Barrel (including connections 1"" and greater)",A
+[TEST] M80-DRF6,80,"[TEST] Internal Auxiliary Launcher Ejection Pump Water Cylinder (including connections 1"" and greater)",B

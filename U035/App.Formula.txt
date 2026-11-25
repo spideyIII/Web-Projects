@@ -792,7 +792,7 @@ nfU035DrfCatalog = ForAll(
     ),
     {
         Title: ThisRecord.'UROMODDRF Title',
-        DrfType: ThisRecord.'DRF Type'
+        DrfType: nfU035DrfTypeNorm(ThisRecord.'DRF Type')
     }
 );
 
@@ -835,31 +835,79 @@ With(
 );
 
 // ----------------------------------------------------------------------------
-// WALL CALCULATION PRECISION  (README: keep full precision)
-// The stored value is never rounded. To change decimals later, edit ONE of these:
-//   * Display only (box text):   nfU035WallCalcDisplay below, e.g. Text(Round(v, 2))
-//   * Stored value too:          wrap the results in nfU035DrfCalc below with Round(..., 2)
-//   * Edit-detection tolerance:  nfU035WallCalcTolerance below (keep it smaller than
-//     the smallest step you display, or typing the same number will look like an edit)
+// DRF MEASUREMENTS AND WALL CALCULATION
+//
+// Formats (change here, not in the controls):
+//   * B and C boxes and the Wall Calculation box show 3 decimals ("0.000").
+//     Edit nfU035MeasureText / nfU035WallCalcDisplay below, e.g. "0.00" for 2 decimals.
+//   * Stored values keep full precision (nothing is rounded when saved).
+//   * nfU035WallCalcTolerance must stay below half the displayed step (0.001 / 2).
+//     If you change the display to 2 decimals, change it to 0.005.
+//
+// Type A = % wall reduction = (B / C) x 100  -> shown as a percentage
+// Type B = actual wall remaining = C - B      -> shown as a measurement
+// The calculated value is derived live (nfU035DrfCalcValue), so it is right even if an
+// earlier edit event was missed. A value typed into the box wins (WallCalcManual) until Reset.
 // ----------------------------------------------------------------------------
-nfU035WallCalcTolerance = 0.0000001;
+nfU035WallCalcTolerance = 0.0005;
+
+// Text shown in the B / C boxes (blank when 0 so the placeholder shows).
+nfU035MeasureText(v: Number): Text =
+If(v = 0, "", Text(v, "0.000"));
 
 nfU035WallCalcDisplay(v: Number): Text =
-Text(v);
+Text(v, "0.000");
 
-// Type A = % wall reduction, Type B = actual wall remaining. Blank type = 0.
+// DRF Type can arrive as "A", "Type A", "TYPE B", " b " ... Anything else = unknown ("").
+nfU035DrfTypeNorm(t: Text): Text =
+With(
+    { u: Upper(Trim(Coalesce(t, ""))) },
+    If(
+        Len(u) > 0 && Len(u) <= 7 && Right(u, 1) = "A", "A",
+        Len(u) > 0 && Len(u) <= 7 && Right(u, 1) = "B", "B",
+        ""
+    )
+);
+
+// Blank type (no DRF form picked yet) = 0.
 nfU035DrfCalc(drfType: Text, b: Number, c: Number): Number =
-If(
-    drfType = "A", If(c <> 0, (b / c) * 100, 0),
-    drfType = "B", c - b,
-    0
+With(
+    { t: nfU035DrfTypeNorm(drfType) },
+    If(
+        t = "A", If(c <> 0, (b / c) * 100, 0),
+        t = "B", c - b,
+        0
+    )
+);
+
+// The value the row should show / save: the typed value when edited, else the calculation.
+nfU035DrfCalcValue(drfId: Text): Number =
+With(
+    { r: nfU035Drf(drfId) },
+    If(
+        r.WallCalcManual,
+        r.WallCalculation,
+        nfU035DrfCalc(r.DrfType, r.DepthB, r.MinimumWallC)
+    )
 );
 
 nfU035DrfCalcLabel(drfType: Text): Text =
+With(
+    { t: nfU035DrfTypeNorm(drfType) },
+    If(
+        t = "A", "% Wall Reduction B/C X 100",
+        t = "B", "Actual Wall Remaining 'A' ('C'-'B')",
+        "Wall Calculation"
+    )
+);
+
+// Validation text for a B / C box. Blank = OK (a blank box counts as 0).
+nfU035MeasureError(raw: Text): Text =
 If(
-    drfType = "A", "% Wall Reduction B/C X 100",
-    drfType = "B", "Actual Wall Remaining 'A' ('C'-'B')",
-    "Wall Calculation"
+    IsBlank(Trim(Coalesce(raw, ""))), "",
+    !IsNumeric(Trim(raw)), "enter a number, e.g. 0.125",
+    Value(Trim(raw)) < 0, "must be 0 or greater",
+    ""
 );
 
 
@@ -1094,7 +1142,7 @@ SaveU035Results(): Boolean =
                                             'Face Defect Only': D.FaceDefectOnly,
                                             'Depth B': D.DepthB,
                                             'Minimum Wall Thickness C': D.MinimumWallC,
-                                            'Wall Calculation': D.WallCalculation,
+                                            'Wall Calculation': If(D.WallCalcManual, D.WallCalculation, nfU035DrfCalc(D.DrfType, D.DepthB, D.MinimumWallC)),
                                             'Adjacent Unaffected Wall Thickness': D.AdjacentWallThickness,
                                             'Amount Below Dwg Min': If(D.DrfType = "B", D.AmountBelowMin, Blank()),
                                             'Measurement Method': D.MeasurementMethod,
@@ -1203,7 +1251,7 @@ JSON(
                                 FaceDefectOnly: D.FaceDefectOnly,
                                 DepthB: D.DepthB,
                                 MinimumWallC: D.MinimumWallC,
-                                WallCalculation: D.WallCalculation,
+                                WallCalculation: If(D.WallCalcManual, D.WallCalculation, nfU035DrfCalc(D.DrfType, D.DepthB, D.MinimumWallC)),
                                 WallCalcManual: D.WallCalcManual,
                                 AdjacentWallThickness: D.AdjacentWallThickness,
                                 AmountBelowMin: If(D.DrfType = "B", D.AmountBelowMin, Blank()),

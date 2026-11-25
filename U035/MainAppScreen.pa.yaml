@@ -2417,7 +2417,7 @@ Screens:
                                           AccessibleLabel: ="DRF defect rows for the selected subtask"
                                           BorderColor: =thmU035.Border
                                           Items: =Filter(colSubtaskDrf, ParentCode = _rowKey && ItemCode = _subKey)
-                                          TemplateSize: =68
+                                          TemplateSize: =100
                                         Children:
                                           - vctrDrfRow:
                                               Control: GroupContainer@1.5.0
@@ -2425,12 +2425,13 @@ Screens:
                                               Properties:
                                                 DropShadow: =DropShadow.Semilight
                                                 Fill: =If(ThisItem.DrfId = _drfChildKey, thmU035.SelectedFill, thmU035.SurfaceAlt)
-                                                Height: =60
-                                                LayoutAlignItems: =LayoutAlignItems.Center
+                                                Height: =92
                                                 LayoutDirection: =LayoutDirection.Vertical
-                                                LayoutGap: =2
+                                                LayoutGap: =4
+                                                PaddingBottom: =6
                                                 PaddingLeft: =10
                                                 PaddingRight: =10
+                                                PaddingTop: =6
                                                 RadiusBottomLeft: =6
                                                 RadiusBottomRight: =6
                                                 RadiusTopLeft: =6
@@ -2439,27 +2440,134 @@ Screens:
                                                 X: =4
                                                 Y: =4
                                               Children:
-                                                - lblDrfRowTitle:
-                                                    Control: ModernText@1.0.0
+                                                - hctrDrfRowTop:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
                                                     Properties:
-                                                      AccessibleLabel: =Coalesce(ThisItem.DefectLocation, "New defect") & If(IsBlank(ThisItem.DrfType), "", "  ·  Type " & ThisItem.DrfType)
-                                                      AlignInContainer: =AlignInContainer.Stretch
-                                                      AutoHeight: =true
-                                                      Color: =thmU035.Heading
-                                                      FontWeight: =FontWeight.Bold
+                                                      DropShadow: =DropShadow.None
+                                                      FillPortions: =0
+                                                      Height: =26
+                                                      LayoutAlignItems: =LayoutAlignItems.Center
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =6
+                                                      LayoutMinHeight: =26
+                                                    Children:
+                                                      - lblDrfRowId:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: ="ID " & Upper(Left(ThisItem.DrfId, 6))
+                                                            Align: =Align.Center
+                                                            Color: =thmU035.ChipText
+                                                            Fill: =thmU035.ChipFill
+                                                            FontWeight: =FontWeight.Bold
+                                                            Height: =22
+                                                            PaddingBottom: =0
+                                                            PaddingLeft: =8
+                                                            PaddingRight: =8
+                                                            PaddingTop: =0
+                                                            RadiusBottomLeft: =11
+                                                            RadiusBottomRight: =11
+                                                            RadiusTopLeft: =11
+                                                            RadiusTopRight: =11
+                                                            Size: =10
+                                                            Text: ="ID " & Upper(Left(ThisItem.DrfId, 6))
+                                                            Width: =86
+                                                      - lblDrfRowLocation:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: =Coalesce(ThisItem.DefectLocation, "No location yet")
+                                                            AlignInContainer: =AlignInContainer.Center
+                                                            Color: =thmU035.Heading
+                                                            FillPortions: =1
+                                                            FontWeight: =FontWeight.Bold
+                                                            LayoutMinWidth: =1
+                                                            Size: =12
+                                                            Text: =Coalesce(ThisItem.DefectLocation, "No location yet")
+                                                      - lblDrfRowType:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: ="Type " & nfU035DrfTypeNorm(ThisItem.DrfType)
+                                                            Align: =Align.Center
+                                                            Color: =thmU035.ChipText
+                                                            Fill: =thmU035.ChipFill
+                                                            FontWeight: =FontWeight.Bold
+                                                            Height: =22
+                                                            PaddingBottom: =0
+                                                            PaddingLeft: =8
+                                                            PaddingRight: =8
+                                                            PaddingTop: =0
+                                                            RadiusBottomLeft: =11
+                                                            RadiusBottomRight: =11
+                                                            RadiusTopLeft: =11
+                                                            RadiusTopRight: =11
+                                                            Size: =10
+                                                            Text: ="Type " & nfU035DrfTypeNorm(ThisItem.DrfType)
+                                                            Width: =62
+                                                            Visible: =!IsBlank(nfU035DrfTypeNorm(ThisItem.DrfType))
+                                                - hctrDrfRowForm:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      DropShadow: =DropShadow.None
+                                                      FillPortions: =0
                                                       Height: =22
-                                                      Size: =12
-                                                      Text: =Coalesce(ThisItem.DefectLocation, "New defect") & If(IsBlank(ThisItem.DrfType), "", "  ·  Type " & ThisItem.DrfType)
-                                                - lblDrfRowMeta:
-                                                    Control: ModernText@1.0.0
+                                                      LayoutAlignItems: =LayoutAlignItems.Center
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =6
+                                                      LayoutMinHeight: =22
+                                                    Children:
+                                                      - lblDrfRowForm:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: =Coalesce(ThisItem.DrfTitle, "No DRF form selected")
+                                                            AlignInContainer: =AlignInContainer.Center
+                                                            Color: =If(IsBlank(ThisItem.DrfTitle), thmU035.WarnText, thmU035.TextMuted)
+                                                            FillPortions: =1
+                                                            LayoutMinWidth: =1
+                                                            Size: =11
+                                                            Text: =Coalesce(ThisItem.DrfTitle, "No DRF form selected")
+                                                - hctrDrfRowStatus:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
                                                     Properties:
-                                                      AccessibleLabel: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "Complete")
-                                                      AlignInContainer: =AlignInContainer.Stretch
-                                                      AutoHeight: =true
-                                                      Color: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, thmU035.WarnText, thmU035.SuccessText)
-                                                      Height: =18
-                                                      Size: =11
-                                                      Text: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "Complete")
+                                                      DropShadow: =DropShadow.None
+                                                      FillPortions: =0
+                                                      Height: =24
+                                                      LayoutAlignItems: =LayoutAlignItems.Center
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =6
+                                                      LayoutMinHeight: =24
+                                                    Children:
+                                                      - lblDrfRowStatus:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, "In progress", "Complete")
+                                                            Align: =Align.Center
+                                                            Color: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, thmU035.WarnText, thmU035.SuccessText)
+                                                            Fill: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, thmU035.WarnBg, thmU035.SuccessBg)
+                                                            FontWeight: =FontWeight.Bold
+                                                            Height: =22
+                                                            PaddingBottom: =0
+                                                            PaddingLeft: =8
+                                                            PaddingRight: =8
+                                                            PaddingTop: =0
+                                                            RadiusBottomLeft: =11
+                                                            RadiusBottomRight: =11
+                                                            RadiusTopLeft: =11
+                                                            RadiusTopRight: =11
+                                                            Size: =10
+                                                            Text: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, "In progress", "Complete")
+                                                            Width: =90
+                                                      - lblDrfRowMissing:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "All required fields entered")
+                                                            AlignInContainer: =AlignInContainer.Center
+                                                            Color: =thmU035.TextMuted
+                                                            FillPortions: =1
+                                                            LayoutMinWidth: =1
+                                                            Size: =11
+                                                            Text: =If(nfU035DrfRowMissing(ThisItem.DrfId) > 0, nfU035DrfRowMissing(ThisItem.DrfId) & " field(s) missing", "All required fields entered")
                                           - btnDrfRowSelect:
                                               Control: ModernButton@1.0.0
                                               Properties:
@@ -2467,7 +2575,7 @@ Screens:
                                                 Appearance: =ButtonAppearance.Transparent
                                                 Color: =Color.Transparent
                                                 FontWeight: =""
-                                                Height: =60
+                                                Height: =92
                                                 OnSelect: |-
                                                   =UpdateContext({_drfChildKey: ThisItem.DrfId})
                                                 Text: =""
@@ -2811,22 +2919,34 @@ Screens:
                                                 - lblDepthB:
                                                     Control: ModernText@1.0.0
                                                     Properties:
-                                                      AccessibleLabel: ="Depth (B)"
+                                                      AccessibleLabel: ="Depth (B)" & If(nfU035MeasureError(txtDrfDepthB.Text) <> "", "  -  " & nfU035MeasureError(txtDrfDepthB.Text), nfU035Drf(_drfChildKey).DepthB > nfU035Drf(_drfChildKey).MinimumWallC && nfU035Drf(_drfChildKey).MinimumWallC > 0, "  -  greater than C", "")
                                                       AlignInContainer: =AlignInContainer.Stretch
-                                                      Color: =thmU035.TextMuted
+                                                      Color: =If(nfU035MeasureError(txtDrfDepthB.Text) <> "", thmU035.Danger, nfU035Drf(_drfChildKey).DepthB > nfU035Drf(_drfChildKey).MinimumWallC && nfU035Drf(_drfChildKey).MinimumWallC > 0, thmU035.WarnText, thmU035.TextMuted)
                                                       Size: =11
-                                                      Text: ="Depth (B)"
+                                                      Text: ="Depth (B)" & If(nfU035MeasureError(txtDrfDepthB.Text) <> "", "  -  " & nfU035MeasureError(txtDrfDepthB.Text), nfU035Drf(_drfChildKey).DepthB > nfU035Drf(_drfChildKey).MinimumWallC && nfU035Drf(_drfChildKey).MinimumWallC > 0, "  -  greater than C", "")
                                                 - txtDrfDepthB:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      TriggerOutput: =TriggerOutput.FocusOut
+                                                      Placeholder: ="0.000"
                                                       AccessibleLabel: ="Depth B"
                                                       AlignInContainer: =AlignInContainer.Stretch
-                                                      Default: =If(nfU035Drf(_drfChildKey).DepthB = 0, "", Text(nfU035Drf(_drfChildKey).DepthB))
+                                                      Default: =nfU035MeasureText(nfU035Drf(_drfChildKey).DepthB)
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                       Height: =36
                                                       LayoutMinWidth: =1
                                                       OnChange: |-
-                                                        =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).DepthB, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DepthB: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, n, nfU035Drf(_drfChildKey).MinimumWallC))}); MarkU035Dirty(_rowKey)))
+                                                        =If(
+                                                            nfU035MeasureError(Self.Text) = "",
+                                                            With(
+                                                                {n: If(IsBlank(Trim(Self.Text)), 0, Value(Trim(Self.Text)))},
+                                                                If(
+                                                                    n <> nfU035Drf(_drfChildKey).DepthB,
+                                                                    Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {DepthB: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, n, nfU035Drf(_drfChildKey).MinimumWallC))});
+                                                                    MarkU035Dirty(_rowKey)
+                                                                )
+                                                            )
+                                                        )
                                           - vctrMinWallCField:
                                               Control: GroupContainer@1.5.0
                                               Variant: AutoLayout
@@ -2839,23 +2959,35 @@ Screens:
                                                 - lblMinWallC:
                                                     Control: ModernText@1.0.0
                                                     Properties:
-                                                      AccessibleLabel: ="Minimum Wall Thickness (C)"
+                                                      AccessibleLabel: ="Minimum Wall Thickness (C)" & If(nfU035MeasureError(txtDrfMinWallC.Text) <> "", "  -  " & nfU035MeasureError(txtDrfMinWallC.Text), false, "  -  greater than C", "")
                                                       AlignInContainer: =AlignInContainer.Stretch
-                                                      Color: =thmU035.TextMuted
+                                                      Color: =If(nfU035MeasureError(txtDrfMinWallC.Text) <> "", thmU035.Danger, false, thmU035.WarnText, thmU035.TextMuted)
                                                       Size: =11
-                                                      Text: ="Minimum Wall Thickness (C)"
+                                                      Text: ="Minimum Wall Thickness (C)" & If(nfU035MeasureError(txtDrfMinWallC.Text) <> "", "  -  " & nfU035MeasureError(txtDrfMinWallC.Text), false, "  -  greater than C", "")
                                                 - txtDrfMinWallC:
                                                     Control: ModernTextInput@1.1.2
                                                     Properties:
+                                                      TriggerOutput: =TriggerOutput.FocusOut
+                                                      Placeholder: ="0.000"
                                                       AccessibleLabel: ="Minimum wall thickness C"
                                                       AlignInContainer: =AlignInContainer.Stretch
-                                                      Default: =If(nfU035Drf(_drfChildKey).MinimumWallC = 0, "", Text(nfU035Drf(_drfChildKey).MinimumWallC))
+                                                      Default: =nfU035MeasureText(nfU035Drf(_drfChildKey).MinimumWallC)
                                                       DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
                                                       Height: =36
                                                       LayoutMinHeight: =36
                                                       LayoutMinWidth: =1
                                                       OnChange: |-
-                                                        =With({n: IfError(Value(Self.Text), 0)}, If(n <> nfU035Drf(_drfChildKey).MinimumWallC, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MinimumWallC: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, nfU035Drf(_drfChildKey).DepthB, n))}); MarkU035Dirty(_rowKey)))
+                                                        =If(
+                                                            nfU035MeasureError(Self.Text) = "",
+                                                            With(
+                                                                {n: If(IsBlank(Trim(Self.Text)), 0, Value(Trim(Self.Text)))},
+                                                                If(
+                                                                    n <> nfU035Drf(_drfChildKey).MinimumWallC,
+                                                                    Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {MinimumWallC: n, WallCalculation: If(nfU035Drf(_drfChildKey).WallCalcManual, nfU035Drf(_drfChildKey).WallCalculation, nfU035DrfCalc(nfU035Drf(_drfChildKey).DrfType, nfU035Drf(_drfChildKey).DepthB, n))});
+                                                                    MarkU035Dirty(_rowKey)
+                                                                )
+                                                            )
+                                                        )
                                                       Width: =1
                                           - vctrWallCalcField:
                                               Control: GroupContainer@1.5.0
@@ -2869,11 +3001,11 @@ Screens:
                                                 - lblWallCalc:
                                                     Control: ModernText@1.0.0
                                                     Properties:
-                                                      AccessibleLabel: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
+                                                      AccessibleLabel: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "  -  pick a DRF form first", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
                                                       AlignInContainer: =AlignInContainer.Stretch
-                                                      Color: =thmU035.TextMuted
+                                                      Color: =If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), thmU035.WarnText, thmU035.TextMuted)
                                                       Size: =11
-                                                      Text: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
+                                                      Text: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType) & If(IsBlank(nfU035Drf(_drfChildKey).DrfTitle), "  -  pick a DRF form first", If(nfU035Drf(_drfChildKey).WallCalcManual, "  (edited)", "  (auto)"))
                                                 - hctrWallCalcRow:
                                                     Control: GroupContainer@1.5.0
                                                     Variant: AutoLayout
@@ -2889,17 +3021,39 @@ Screens:
                                                       - txtDrfWallCalc:
                                                           Control: ModernTextInput@1.1.2
                                                           Properties:
+                                                            TriggerOutput: =TriggerOutput.FocusOut
+                                                            Placeholder: ="0.000"
                                                             AccessibleLabel: =nfU035DrfCalcLabel(nfU035Drf(_drfChildKey).DrfType)
                                                             AlignInContainer: =AlignInContainer.Stretch
-                                                            Default: =nfU035WallCalcDisplay(nfU035Drf(_drfChildKey).WallCalculation)
-                                                            DisplayMode: =If(nfU035CanEditCode(_rowKey), DisplayMode.Edit, DisplayMode.View)
+                                                            Default: =nfU035WallCalcDisplay(nfU035DrfCalcValue(_drfChildKey))
+                                                            DisplayMode: =If(nfU035CanEditCode(_rowKey) && !IsBlank(nfU035Drf(_drfChildKey).DrfTitle), DisplayMode.Edit, DisplayMode.View)
                                                             FillPortions: =1
                                                             Height: =36
                                                             LayoutMinHeight: =36
                                                             LayoutMinWidth: =1
                                                             OnChange: |-
-                                                              =With({n: IfError(Value(Self.Text), 0)}, If(Abs(n - nfU035Drf(_drfChildKey).WallCalculation) > nfU035WallCalcTolerance, Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: n, WallCalcManual: true}); MarkU035Dirty(_rowKey)))
+                                                              =If(
+                                                                  nfU035MeasureError(Self.Text) = "",
+                                                                  With(
+                                                                      {n: If(IsBlank(Trim(Self.Text)), 0, Value(Trim(Self.Text)))},
+                                                                      If(
+                                                                          Abs(n - nfU035DrfCalcValue(_drfChildKey)) > nfU035WallCalcTolerance,
+                                                                          Patch(colSubtaskDrf, LookUp(colSubtaskDrf, DrfId = _drfChildKey), {WallCalculation: n, WallCalcManual: true});
+                                                                          MarkU035Dirty(_rowKey)
+                                                                      )
+                                                                  )
+                                                              )
                                                             Width: =1
+                                                      - lblWallCalcUnit:
+                                                          Control: ModernText@1.0.0
+                                                          Properties:
+                                                            AccessibleLabel: ="Percent"
+                                                            AlignInContainer: =AlignInContainer.Center
+                                                            Color: =thmU035.TextBody
+                                                            FontWeight: =FontWeight.Bold
+                                                            Text: ="%"
+                                                            Visible: =nfU035DrfTypeNorm(nfU035Drf(_drfChildKey).DrfType) = "A"
+                                                            Width: =16
                                                       - btnDrfWallCalcReset:
                                                           Control: ModernButton@1.0.0
                                                           Properties:
@@ -2949,7 +3103,7 @@ Screens:
                                                 LayoutDirection: =LayoutDirection.Vertical
                                                 LayoutGap: =4
                                                 LayoutMinWidth: =240
-                                                Visible: =nfU035Drf(_drfChildKey).DrfType = "B"
+                                                Visible: =nfU035DrfTypeNorm(nfU035Drf(_drfChildKey).DrfType) = "B"
                                               Children:
                                                 - lblBelowMin:
                                                     Control: ModernText@1.0.0

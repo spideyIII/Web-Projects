@@ -1,15 +1,17 @@
-# Your edited copy of the screen
+# Your edits go here
 
-`U035/custom/MainAppScreen.pa.yaml` starts as an exact copy of `U035/MainAppScreen.pa.yaml`
-(including the Date picker and the Visual Defects Yes/No buttons).
+`U035/custom/MainAppScreen.pa.yaml` is intentionally blank.
 
-Paste your version of the screen YAML into this file. Leave `U035/MainAppScreen.pa.yaml` alone: it is the
-baseline Claude edits, so the two files can be compared to see exactly what you changed.
+`U035/MainAppScreen.pa.yaml` is the merged baseline: your earlier layout edits plus Claude's changes
+(Date of Inspection date picker, Visual Defects Yes/No buttons, DRF Required "No" fix).
 
-To compare, ask Claude, or run:
+When you need to change the UI again:
+1. Export or copy the screen YAML from Studio.
+2. Paste it into `U035/custom/MainAppScreen.pa.yaml` (replace the placeholder line) and commit.
+3. Ask Claude to compare and merge. Claude updates the baseline and blanks this file again.
+
+To compare yourself:
 
 ```bash
 git diff --no-index U035/MainAppScreen.pa.yaml U035/custom/MainAppScreen.pa.yaml
 ```
-
-This folder is kept separate on purpose so Studio source tooling never sees two screens with the same name.
